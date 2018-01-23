@@ -1,10 +1,13 @@
+#ifndef __LANG__
+#define __LANG__
+
+#include <stdbool.h>
 
 typedef enum objTag {
-  T_UNUSED = 0,
-  T_SMALLINTEGER,
+  T_UNINITIALIZED = 0,
+  T_BOOLEAN,
   T_INTEGER,
   T_BIGINTEGER,
-  T_FLOAT,
   T_STRING
 } astTag;
 
@@ -14,9 +17,9 @@ typedef struct object {
 
 typedef object* OBJ;
 
-struct objSmallInteger {
+struct objBoolean {
   enum objTag tag;
-  int16_t val;
+  bool val;
 };
 
 struct objInteger {
@@ -29,13 +32,10 @@ struct objBigInteger {
   int64_t val;
 };
 
-struct objFloat {
-  enum objTag tag;
-  double val;
-};
-
 struct objString {
   enum objTag tag;
   int size;
   char string[1];
 };
+
+#endif /* __LANG__ */

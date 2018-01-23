@@ -45,7 +45,6 @@ void printAstTree(astNode* node) {  // TODO
     }
     case N_READ: {
       printf("READ ");
-      printAstTree(((astReadNode*)node)->type);
       printf(" INTO ");
       printAstTree(((astReadNode*)node)->var);
       break;
@@ -59,16 +58,6 @@ void printAstTree(astNode* node) {  // TODO
       printf("INCREMENT \n");
       printAstTree(((astIncrementNode*)node)->var);
       printf(" BY %d", ((astIncrementNode*)node)->amount);
-      break;
-    }
-    case N_TYPE: {
-      switch (((astTypeNode*)node)->type) {
-        case T_INTEGER:
-          printf(" INT ");
-          break;
-        default:
-          break;
-      }
       break;
     }
     case N_INT: {
@@ -98,6 +87,9 @@ void printAstTree(astNode* node) {  // TODO
       printf("(");
       printAstTree(((astExprBinaryNode*)node)->left);
       switch (((astExprUnaryNode*)node)->op) {
+        case OP_ASSIGN:
+          printf(" := ");
+          break;
         case OP_PLUS:
           printf(" + ");
           break;
@@ -111,7 +103,7 @@ void printAstTree(astNode* node) {  // TODO
           printf(" / ");
           break;
         case OP_MOD:
-          printf(" % ");
+          printf(" mod ");
           break;
         case OP_EQ:
           printf(" == ");
@@ -176,7 +168,6 @@ void burnAstTree(astNode* node) {
       break;
     }
     case N_READ: {
-      burnAstTree(((astReadNode*)node)->type);
       burnAstTree(((astReadNode*)node)->var);
       break;
     }
@@ -210,9 +201,10 @@ astBlockNode* newAstBlockNode(astStatementNode* __s) {
   return _n;
 }
 
-astStatementNode* newAstStatementNode(astNode* __s, astStatementNode* __n) {
+astStatementNode* newAstStatementNode(astNode* __s, astStatementNode* __n, int8_t aggregator) {
   astStatementNode* _n = (astStatementNode*)malloc(sizeof(astStatementNode));
   _n->tag = N_STATEMENT;
+  _n->aggregator = aggregator;
   _n->statement = __s;
   _n->next = (astNode*)__n;
   return _n;
@@ -226,10 +218,9 @@ astAsignNode* newAstAsignNode(astExprVariableNode* __v, astNode* __e) {
   return _n;
 }
 
-astReadNode* newAstReadNode(astTypeNode* __t, astExprVariableNode* __v) {
+astReadNode* newAstReadNode(astExprVariableNode* __v) {
   astReadNode* _n = (astReadNode*)malloc(sizeof(astReadNode));
   _n->tag = N_READ;
-  _n->type = (astNode*)__t;
   _n->var = (astNode*)__v;
   return _n;
 }
@@ -249,12 +240,12 @@ astIncrementNode* newAstIncrementNode(astExprVariableNode* __v, int __a) {
   return _n;
 }
 
-astTypeNode* newAstTypeNode(varType __t) {
+/*astTypeNode* newAstTypeNode(varType __t) {
   astTypeNode* _n = (astTypeNode*)malloc(sizeof(astTypeNode));
   _n->tag = N_TYPE;
   _n->type = __t;
   return _n;
-}
+}*/
 
 astExprIntegerNode* newAstExprIntegerNode(int __v) {
   astExprIntegerNode* _n =

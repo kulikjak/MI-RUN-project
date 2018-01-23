@@ -10,7 +10,6 @@ typedef enum astTag {
   N_READ,
   N_WRITE,
   N_INCREMENT,
-  N_TYPE,
   N_INT,
   N_STRING,
   N_VAR,
@@ -21,6 +20,7 @@ typedef enum astTag {
 typedef enum varType { T_INTEGER } varType;
 
 typedef enum exprOperator {
+  OP_ASSIGN,
   OP_PLUS,
   OP_MINUS,
   OP_MUL,
@@ -48,6 +48,7 @@ typedef struct astBlockNode {
 
 typedef struct astStatementNode {
   enum astTag tag;
+  int8_t aggregator;
   astNode* statement;
   astNode* next;
 } astStatementNode;
@@ -73,7 +74,6 @@ typedef struct astWhileNode {
 
 typedef struct astReadNode {
   enum astTag tag;
-  astNode* type;
   astNode* var;
 } astReadNode;
 
@@ -87,6 +87,12 @@ typedef struct astIncrementNode {
   int amount;
   astNode* var;
 } astIncrementNode;
+
+typedef struct astFuncCallNode {
+  enum astTag tag;
+  astNode* args;
+  astStatementNode *body;
+} astFuncCallNode;
 
 typedef struct astTypeNode {
   enum astTag tag;
@@ -125,7 +131,7 @@ void printAstTree(astNode*);
 void burnAstTree(astNode*);
 
 astBlockNode* newAstBlockNode(astStatementNode*);
-astStatementNode* newAstStatementNode(astNode*, astStatementNode*);
+astStatementNode* newAstStatementNode(astNode*, astStatementNode*, int8_t);
 astAsignNode* newAstAsignNode(astExprVariableNode*, astNode*);
 astReadNode* newAstReadNode(astTypeNode*, astExprVariableNode* _v);
 astWriteNode* newAstWriteNode(astNode*);

@@ -5,18 +5,40 @@
 #include "ast.h"
 #include "lexan.h"
 #include "prototypes.h"
+#include "memory.h"
 #include "utils.h"
 
+#define SKIP_ENDL                                 \
+  {                                               \
+    while (Symb.type == ENDL) Symb = readLexem(); \
+  }
+
+int8_t aggregator();
+
+appContext* Program();
+void GlobalVars(appContext* ctx);
+void FunctionDeclarations(xxx* mem);
+void FunctionArguments( xxx* args );
 astBlockNode *Block();
 astStatementNode *Line();
 
-astNode *Expression();
-astNode *ExpressionRest(astNode *du);
-astNode *SimpleExpression();
-astNode *SimpleExpressionRest(astNode *du);
-astNode *Term();
-astNode *TermRest(astNode *du);
-astNode *Factor();
+astNode* Expression();
+astNode* AssignmentExpr();
+astNode* AssignmentExprRest(astNode*);
+astNode* LogicalOrExpr();
+astNode* LogicalOrExprRest(astNode*);
+astNode* LogicalAndExpr();
+astNode* LogicalAndExprRest(astNode*);
+astNode* EqualityExpr();
+astNode* EqualityExprRest(astNode*);
+astNode* RelationalExpr();
+astNode* RelationalExprRest(astNode*);
+astNode* AdditiveExpr();
+astNode* AdditiveExprRest(astNode*);
+astNode* MultiplicativeExpr();
+astNode* MultiplicativeExprRest(astNode*);
+astNode *UnaryExpr();
+
 
 LexicalSymbol Symb;
 
@@ -51,47 +73,154 @@ void MatchGetNumber(LexSymbolType token, int *h) {
 
 bool Check(LexSymbolType s) { return (Symb.type == s); }
 
+
+appContext* Program() {
+  debug("Program");
+
+  appContext* ctx = initAppContext();
+
+  GlobalVars(ctx);
+  FunctionDeclarations(ctx);
+
+  SKIP_ENDL;
+
+  Match(kwMAIN);
+  astBlockNode* main = Block();
+  Match(ENDL);
+
+  // TODO
+
+  SKIP_ENDL;
+
+  if (Symb.type != EOI) {
+    fprintf(stderr, "Program does not end with main function.");
+    exit(EXIT_FAILURE);
+  }
+
+  return ctx;
+}
+
+void GlobalVars(appContext* ctx) {
+  debug("GlobalVars");
+
+  SKIP_ENDL;
+
+  switch (Symb.type) {
+    case kwGLOBAL: {
+      Symb = readLexem();
+      Match(kwVARIABLE);
+
+      char buffer[MAX_IDENT_LEN];
+      MatchGetString(IDENT, buffer);
+
+      newGlobalVariable(ctx, buffer);
+      newEntry(ctx.global, buffer, newUninitialized());
+
+      Match(ENDL);
+      GlobalVars(mem);
+    }
+    default:
+      break;
+  }
+}
+
+void FunctionDeclarations(xxx* mem) {
+  debug("FunctionDeclaration");
+
+  SKIP_ENDL;
+
+  switch (Symb.type) {
+    case kwFUNCTION: {
+      Symb = readLexem();
+      char string[MAX_IDENT_LEN];
+      MatchGetString(IDENT, string);
+
+      if (Symb.type == kwARGS) {
+        Symb = readLexem();
+        // TODO
+        FunctionArguments( mem );
+      }
+
+      astBlockNode = Block();
+
+      Match(ENDL);
+      FunctionDeclarations(mem);
+    }
+    default:
+      break;
+  }
+}
+
+void FunctionArguments( xxx* args ) {
+  
+  debug( "FuncArguments" );
+  if(Check(IDENT)){
+    
+    char string[MAX_IDENT_LEN];
+    MatchGetString(IDENT, string);
+  
+    // TOOD f->addArgument( string, t );
+    FunctionArguments( args );
+  }
+}
+
+
 astBlockNode *Block() {
   debug("Block");
+
+  Match(kwBEGIN);
+  Match(ENDL);
 
   astStatementNode *first = Line();
   astStatementNode *last = first;
   Match(ENDL);
 
-  while (!Check(kwDONE) && !Check(EOI)) {
+  while (!Check(kwEND) && !Check(EOI)) {
     astStatementNode *curr = Line();
     Match(ENDL);
 
     last->next = (astNode *)curr;
     last = curr;
   }
+  Match(kwEND);
+
   return newAstBlockNode(first);
 }
 
-astStatementNode *Line() {
+int8_t aggregator() {
+  int8_t value = -1;
+
+  if (Check(AGGREGATOR)) {
+    value = Symb.number;
+    Symb = readLexem();
+  }
+  return value;
+}
+
+astStatementNode* Line() {
   debug("Line");
+
+  SKIP_ENDL;
+
+  int8_t agg = aggregator();
 
   switch (Symb.type) {
     case kwREAD: {
       Symb = readLexem();
 
       // Check for read type identifier
-      astTypeNode *type = NULL;
-      if (Symb.type == kwINTEGER) {
-        type = newAstTypeNode(T_INTEGER);
-        Symb = readLexem();
-      }
       Match(kwINTO);
 
       // read desc variable name
       char buffer[MAX_IDENT_LEN];
       MatchGetString(IDENT, buffer);
+      Match(ENDL);
 
       // create nodes for read statement
       astExprVariableNode *var = newAstExprVariableNode(buffer);
-      astReadNode *rnode = newAstReadNode(type, var);
+      astReadNode *rnode = newAstReadNode(var);
 
-      astStatementNode *statement = newAstStatementNode((astNode *)rnode, NULL);
+      astStatementNode *statement = newAstStatementNode((astNode *)rnode, NULL, agg);
       return statement;
     }
     case kwWRITE: {
@@ -99,10 +228,11 @@ astStatementNode *Line() {
 
       // parse expression after write keyword
       astNode *expr = Expression();
+      Match(ENDL);
 
       // create nodes for write statement
       astWriteNode *wnode = newAstWriteNode(expr);
-      astStatementNode *statement = newAstStatementNode((astNode *)wnode, NULL);
+      astStatementNode *statement = newAstStatementNode((astNode *)wnode, NULL, agg);
       return statement;
     }
     case kwWHILE: {
@@ -147,39 +277,225 @@ astStatementNode *Line() {
           MatchGetNumber(NUMB, &amount);
         }
       }
+      Match(ENDL);
 
       // create nodes for increment / decrement statement
       astIncrementNode *incr = newAstIncrementNode(var, amount);
-      astStatementNode *statement = newAstStatementNode((astNode *)incr, NULL);
+      astStatementNode *statement = newAstStatementNode((astNode *)incr, NULL, agg);
       return statement;
     }
-    case IDENT: {
-      // read variable name of identificator
-      char buffer[MAX_IDENT_LEN];
-      MatchGetString(IDENT, buffer);
-
-      // create node for variable
-      astExprVariableNode *var = newAstExprVariableNode(buffer);
-
-      Match(kwIS);
-
-      // parse expression after write keyword
-      astNode *expr = Expression();
-
-      // create nodes for write statement
-      astAsignNode *anode = newAstAsignNode(var, (astNode *)expr);
-      astStatementNode *statement = newAstStatementNode((astNode *)anode, NULL);
-      return statement;
+    default: {
+      return Expression();
     }
-    case ENDL: {
-      Symb = readLexem();
-      return Line();
-    }
-    default: {}
   }
   _UNREACHABLE;
   return newAstStatementNode(NULL, NULL);
 }
+
+astNode* Expression() { return AssignmentExpr(); }
+
+astNode* AssignmentExpr() {
+  debug("AssignmentExpr");
+  return AssignmentExprRest(LogicalOrExpr());
+}
+
+astNode* AssignmentExprRest(astNode* du) {
+  debug("AssignmentExprRest");
+
+  if (Symb.type == ASSIGN) {
+    Symb = readLexem();
+    return AssignmentExprRest(
+        (astNode*)newAstExprBinaryNode(OP_ASSIGN, du, LogicalOrExpr()));
+  }
+  return du;
+}
+
+astNode* LogicalOrExpr() {
+  debug("LogicalOrExpr");
+  return LogicalOrExprRest(LogicalAndExpr());
+}
+
+astNode* LogicalOrExprRest(astNode* du) {
+  debug("LogicalOrExprRest");
+
+  if (Symb.type == kwOR) {
+    Symb = readLexem();
+    return LogicalOrExprRest(
+        (astNode*)newAstExprBinaryNode(OP_OR, du, LogicalAndExpr()));
+  }
+  return du;
+}
+
+astNode* LogicalAndExpr() {
+  debug("LogicalAndExpr");
+  return LogicalAndExprRest(EqualityExpr());
+}
+
+astNode* LogicalAndExprRest(astNode* du) {
+  debug("LogicalAndExprRest");
+
+  if (Symb.type == kwAND) {
+    Symb = readLexem();
+    return LogicalAndExprRest(
+        (astNode*)newAstExprBinaryNode(OP_AND, du, EqualityExpr()));
+  }
+  return du;
+}
+
+astNode* EqualityExpr() {
+  debug("EqualityExpr");
+  return EqualityExprRest(RelationalExpr());
+}
+
+astNode* EqualityExprRest(astNode* du) {
+  debug("EqualityExprRest");
+
+  switch (Symb.type) {
+    case EQ:
+      Symb = readLexem();
+      return EqualityExprRest(
+          (astNode*)newAstExprBinaryNode(OP_EQ, du, RelationalExpr()));
+    case NEQ:
+      Symb = readLexem();
+      return EqualityExprRest(
+          (astNode*)newAstExprBinaryNode(OP_NEQ, du, RelationalExpr()));
+    default:
+      return du;
+  }
+}
+
+astNode* RelationalExpr() {
+  debug("RelationalExpr");
+  return RelationalExprRest(AdditiveExpr());
+}
+
+astNode* RelationalExprRest(astNode* du) {
+  debug("RelationalExprRest");
+
+  switch (Symb.type) {
+    case LTE:
+      Symb = readLexem();
+      return RelationalExprRest(
+          (astNode*)newAstExprBinaryNode(OP_LTE, du, AdditiveExpr()));
+    case LT:
+      Symb = readLexem();
+      return RelationalExprRest(
+          (astNode*)newAstExprBinaryNode(OP_LT, du, AdditiveExpr()));
+    case GTE:
+      Symb = readLexem();
+      return RelationalExprRest(
+          (astNode*)newAstExprBinaryNode(OP_GTE, du, AdditiveExpr()));
+    case GT:
+      Symb = readLexem();
+      return RelationalExprRest(
+          (astNode*)newAstExprBinaryNode(OP_GT, du, AdditiveExpr()));
+    default:
+      return du;
+  }
+}
+
+astNode* AdditiveExpr() {
+  debug("AdditiveExpr");
+  return AdditiveExprRest(MultiplicativeExpr());
+}
+
+astNode* AdditiveExprRest(astNode* du) {
+  debug("AdditiveExprRest");
+
+  switch (Symb.type) {
+    case PLUS:
+      Symb = readLexem();
+      return AdditiveExprRest(
+          (astNode*)newAstExprBinaryNode(OP_PLUS, du, MultiplicativeExpr()));
+    case MINUS:
+      Symb = readLexem();
+      return AdditiveExprRest(
+          (astNode*)newAstExprBinaryNode(OP_MINUS, du, MultiplicativeExpr()));
+    default:
+      return du;
+  }
+}
+
+astNode* MultiplicativeExpr() {
+  debug("MultiplicativeExpr");
+  return MultiplicativeExprRest(UnaryExpr());
+}
+
+astNode* MultiplicativeExprRest(astNode* du) {
+  debug("MultiplicativeExprRest");
+
+  switch (Symb.type) {
+    case MUL:
+      Symb = readLexem();
+      return MultiplicativeExprRest(
+          (astNode*)newAstExprBinaryNode(OP_MUL, du, UnaryExpr()));
+    case DIV:
+      Symb = readLexem();
+      return MultiplicativeExprRest(
+          (astNode*)newAstExprBinaryNode(OP_DIV, du, UnaryExpr()));
+    case MOD:
+      Symb = readLexem();
+      return MultiplicativeExprRest(
+          (astNode*)newAstExprBinaryNode(OP_MOD, du, UnaryExpr()));
+    default:
+      return du;
+  }
+}
+
+astNode *UnaryExpr() {
+  debug("UnaryExpr");
+
+  switch (Symb.type) {
+    case PLUS:
+      Symb = readLexem();
+      return UnaryExpr();
+    case MINUS:
+      Symb = readLexem();
+      return (astNode *)newAstExprUnaryNode(OP_MINUS, UnaryExpr());
+    case LPAR: {
+      Symb = readLexem();
+      astNode *expr = Expression();
+      Match(RPAR);
+      return expr;
+    }
+    case NUMB: {
+      int value;
+      MatchGetNumber(NUMB, &value);
+
+      return (astNode *)newAstExprIntegerNode(value);
+    }
+    case IDENT: {
+      char buffer[MAX_IDENT_LEN];
+      MatchGetString(IDENT, buffer);
+
+      return (astNode *)newAstExprVariableNode(buffer);
+
+      switch(Symb.type) {
+        case LPAR:
+         {
+          fatal("Not implemented");
+          /*Symb = readLexem();
+          TreeFunctionENode *f = new TreeFunctionENode( string );
+          FunctionArguments( f );
+          Match(RPAR);
+          
+          return f;*/
+         }
+        default:
+         {
+          return (astNode *)newAstExprVariableNode(buffer);
+         }
+      }
+    }
+    default:
+      printf("Error in expression expansion");
+      printf("%s\n", symbTable[Symb.type]);
+      exit(EXIT_FAILURE);
+  }
+}
+
+
+/*
 
 astNode *Expression(void) {
   debug("Expression");
@@ -321,6 +637,7 @@ astNode *Factor(void) {
       exit(EXIT_FAILURE);
   }
 }
+*/
 
 /*
 void Block(TreeBlockNode *b) {
