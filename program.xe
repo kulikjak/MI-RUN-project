@@ -1,4 +1,3 @@
-
 global variable c
 global variable d
 
@@ -28,7 +27,7 @@ main args _argv begin
     end
     write a
     write b
-    kokos i, j, k
+    kokos(i, j, k)
 
 
     increment _a by 3
