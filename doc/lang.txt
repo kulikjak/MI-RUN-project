@@ -10,24 +10,23 @@ iterate &1 into a
 rev_iterate &1 into a
 
 
-<program> ::= <prog_decl> <main>
-<prog_decl> ::= <global> <prog_decl> | <function> <prog_decl> | eps
+<program> ::= <glob_decl> <func_decl> <main>
+<glob_decl> ::= <global> <glob_decl> | eps
+<func_decl> ::= <function> <func_decl> | eps
 
 <global> ::= "global" "variable" <var__> <endl__>
 
-<function> ::= "function" <functionname__> <func_decl_args> <block>
+<function> ::= "function" <functionname__> <func_decl_args> <block> <endl__>
 <func_decl_args> ::= "args" <func_args>
 
-<main> ::= "main" "args" <var__> <block>
+<main> ::= "main" <block> <endl__>
 
 <block> ::= "begin" <endl_> <statement> <block_rest> "end"
 <block_rest> ::= <statement> <block_rest> | eps
 
-<statement> ::= <declaration> | <assignment> | <while> | <if> | <do> | <read> | <write> | <increment> | <decrement> | eps
+<statement> ::= <expression> | <while> | <if> | <do> | <read> | <write> | <increment> | <decrement> | eps
 
-<declaration> ::= <aggregator> "variable" <var__> <endl__>
-
-<assignment> ::= <aggregator> <var__> ":=" <expr_> <endl__>
+<expression> ::= <aggregator> <expr_>
 
 <while> ::= <aggregator> "while" <expr_> <block> <endl_>
 
@@ -35,17 +34,13 @@ rev_iterate &1 into a
 
 <do> ::= <aggregator> "do" <number> "times" <block> <endl_>
 
-<read> ::= <aggregator> "read" <type> "into" <var__> <endl__>
+<read> ::= <aggregator> "read" "into" <var__> <endl__> OK
 
-<write> ::= <aggregator> "write" <expr_> <endl__>
+<write> ::= <aggregator> "write" <expr_> <endl__> OK
 
-<increment> ::= <aggregator> "increment" <var__> <amount_> <endl__>
+<increment> ::= <aggregator> "increment" <var__> <amount_> <endl__> OK
 
-<decrement> ::= <aggregator> "decrement" <var__> <amount_> <endl__>
-
-<funcall> ::= <aggregator> <functionname__> <args> <endl__> 
-
-<aggregator_funcall> ::= <aggregator> <aggregator_function_name__> <aggregator__> <endl__>
+<decrement> ::= <aggregator> "decrement" <var__> <amount_> <endl__> OK
 
 
 <aggregator> ::= <aggregator__> | eps
