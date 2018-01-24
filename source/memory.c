@@ -1,4 +1,6 @@
-#include "memory.h"
+#include <string.h>
+
+#include "lang.h"
 
 /*void newEntry(Context* ctx, char* key, OBJ value) {
   int32_t i;
@@ -27,7 +29,7 @@ LocalContext* newLocalContext(int32_t size) {
   ctx = (LocalContext*)malloc(sizeof(LocalContext));
   ctx->size = size;
   ctx->count = 0;
-  ctx->restricted = true;
+  ctx->restricted = TRUE;
   ctx->parent = NULL;
   ctx->objects = (OBJEntry*)malloc(sizeof(OBJEntry) * size);
   memset(ctx->objects, 0, (sizeof(OBJEntry) * size));
@@ -44,7 +46,7 @@ GlobalContext* newGlobalContext(int32_t size) {
   ctx->objects = (OBJEntry*)malloc(sizeof(OBJEntry) * size);
   memset(ctx->objects, 0, (sizeof(OBJEntry) * size));
 
-  return ctx; 
+  return ctx;
 }
 
 FuncContext* newFuncContext(int32_t size) {
@@ -56,7 +58,7 @@ FuncContext* newFuncContext(int32_t size) {
   ctx->objects = (FuncEntry*)malloc(sizeof(FuncEntry) * size);
   memset(ctx->objects, 0, (sizeof(FuncEntry) * size));
 
-  return ctx; 
+  return ctx;
 }
 
 appContext* initAppContext() {
@@ -72,7 +74,9 @@ appContext* initAppContext() {
 }
 
 
-
+void newGlobalVariable(appContext* ctx, const char* name) {
+  printf("Global %s\n", name);
+}
 
 
 OBJ newUninitialized() {
@@ -85,45 +89,45 @@ OBJ newUninitialized() {
 }
 
 OBJ newBoolean(bool val) {
-  OBJ newObj;
+  struct objBoolean* newObj;
 
-  newObj = (OBJ)malloc(sizeof(struct objBoolean));
+  newObj = (struct objBoolean*)malloc(sizeof(struct objBoolean));
   newObj->tag = T_BOOLEAN;
   newObj->val = val;
 
-  return newObj;
+  return (OBJ)newObj;
 }
 
 OBJ newInteger(int32_t val) {
-  OBJ newObj;
+  struct objInteger* newObj;
 
-  newObj = (OBJ)malloc(sizeof(struct objInteger));
+  newObj = (struct objInteger*)malloc(sizeof(struct objInteger));
   newObj->tag = T_INTEGER;
   newObj->val = val;
 
-  return newObj;
+  return (OBJ)newObj;
 }
 
 OBJ newBigInteger(int64_t val) {
-  OBJ newObj;
+  struct objBigInteger* newObj;
 
-  newObj = (OBJ)malloc(sizeof(struct objBigInteger));
+  newObj = (struct objBigInteger*)malloc(sizeof(struct objBigInteger));
   newObj->tag = T_BIGINTEGER;
   newObj->val = val;
 
-  return newObj;
+  return (OBJ)newObj;
 }
 
 OBJ newString(const char* string) {
   int32_t len;
-  OBJ newObj;
+  struct objString* newObj;
 
   len = (int32_t)(strlen(string));
 
-  newObj = (OBJ)malloc(sizeof(struct objString) + size);
+  newObj = (struct objString*)malloc(sizeof(struct objString) + len);
   newObj->tag = T_STRING;
   newObj->size = len;
 
   strcpy(newObj->string, string);
-  return newObj;
+  return (OBJ)newObj;
 }

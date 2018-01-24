@@ -1,5 +1,26 @@
-#ifndef __AST__
-#define __AST__
+#include <stdlib.h>
+
+// Max size of any program identifier
+#define MAX_IDENT_LEN 64
+
+// Size of program reading buffer
+#define READ_BUFFER_SIZE 2048
+
+typedef enum {
+  IDENT, NUMB, STRING, PLUS, MINUS, MUL, DIV, MOD, GT, GTE, LT, LTE,
+  EQ, NEQ, LPAR, RPAR, COMMA, ENDL, ASSIGN, kwGLOBAL, kwVARIABLE,
+  kwFUNCTION, kwARGS, kwMAIN, kwBEGIN, kwEND, kwWHILE, kwIF, kwDO,
+  kwTIMES, kwINTO, kwWRITE, kwREAD, kwINCREMENT, kwDECREMENT, kwBY,
+  kwOR, kwAND, kwTRUE, kwFALSE, kwNOT, EOI, ERR, AGGREGATOR
+} LexSymbolType;
+
+extern const char *symbTable[44];
+
+typedef struct LexicalSymbol {
+  LexSymbolType type;
+  char ident[MAX_IDENT_LEN];
+  int number;
+} LexicalSymbol;
 
 typedef enum astTag {
   N_BLOCK,
@@ -16,8 +37,6 @@ typedef enum astTag {
   N_UNARY,
   N_BINARY
 } astTag;
-
-typedef enum varType { T_INTEGER } varType;
 
 typedef enum exprOperator {
   OP_ASSIGN,
@@ -94,11 +113,6 @@ typedef struct astFuncCallNode {
   astStatementNode *body;
 } astFuncCallNode;
 
-typedef struct astTypeNode {
-  enum astTag tag;
-  enum varType type;
-} astTypeNode;
-
 typedef struct astExprIntegerNode {
   enum astTag tag;
   int value;
@@ -119,7 +133,7 @@ typedef struct astExprUnaryNode {
   enum exprOperator op;
   astNode* expr;
 } astExprUnaryNode;
-
+ 
 typedef struct astExprBinaryNode {
   enum astTag tag;
   enum exprOperator op;
@@ -133,13 +147,17 @@ void burnAstTree(astNode*);
 astBlockNode* newAstBlockNode(astStatementNode*);
 astStatementNode* newAstStatementNode(astNode*, astStatementNode*, int8_t);
 astAsignNode* newAstAsignNode(astExprVariableNode*, astNode*);
-astReadNode* newAstReadNode(astTypeNode*, astExprVariableNode* _v);
+astReadNode* newAstReadNode(astExprVariableNode* _v);
 astWriteNode* newAstWriteNode(astNode*);
 astIncrementNode* newAstIncrementNode(astExprVariableNode*, int);
-astTypeNode* newAstTypeNode(varType);
 astExprVariableNode* newAstExprVariableNode(char*);
 astExprIntegerNode* newAstExprIntegerNode(int);
 astExprUnaryNode* newAstExprUnaryNode(exprOperator, astNode*);
 astExprBinaryNode* newAstExprBinaryNode(exprOperator, astNode*, astNode*);
 
-#endif /* __AST__ */
+void initLexan(const char * fileName);
+void initInput(const char* fileName);
+void initParser(const char* fileName);
+
+char getChar();
+LexicalSymbol readLexem();

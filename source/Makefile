@@ -1,12 +1,20 @@
 CFLAGS=-O2 -Wall -Wextra -pedantic
+HEADERS=frontend.h lang.h prototypes.h
 
-all: ../LexTest ../SyntaxTest
+OBJS=ast.o reader.o lexan.o utils.o memory.o parser.o
 
-../LexTest: ../tests/lextest.c reader.c lexan.c utils.c
-	gcc $(CFLAGS) -o $@ ../tests/lextest.c reader.c lexan.c utils.c
+all: ../LexTest ../SyntaxTest ../Lang
 
-../SyntaxTest: ../tests/syntaxtest.c reader.c lexan.c parser.c ast.c utils.c
-	gcc $(CFLAGS) -o $@ ../tests/syntaxtest.c reader.c lexan.c parser.c ast.c utils.c
+$(OBJS): $(HEADERS)
+
+../LexTest: ../tests/lextest.o $(OBJS)
+	gcc $(CFLAGS) -o $@ ../tests/lextest.o $(OBJS)
+
+../SyntaxTest: ../tests/syntaxtest.c $(OBJS)
+	gcc $(CFLAGS) -o $@ ../tests/syntaxtest.c $(OBJS)
+
+../Lang: $(OBJS)
+	gcc $(CFLAGS) -o $@ $(OBJS)
 
 clean:
 	rm -f *.o

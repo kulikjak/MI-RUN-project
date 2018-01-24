@@ -1,10 +1,8 @@
 #include <stdio.h>
 
-#include "utils.h"
+#include "lang.h"
 
-#define BUFFER_SIZE 2048
-
-char line[BUFFER_SIZE];
+char line[READ_BUFFER_SIZE];
 char *linePointer = line;
 FILE *inputFile;
 
@@ -17,7 +15,7 @@ void initInput(const char *filename) {
 
 char getChar() {
   if (!*linePointer) {
-    if (!fgets(line, BUFFER_SIZE, inputFile)) {
+    if (!fgets(line, READ_BUFFER_SIZE, inputFile)) {
       fclose(inputFile);
       return EOF;
     }

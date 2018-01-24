@@ -1,6 +1,6 @@
-#include "lexan.h"
-#include "reader.h"
-#include "utils.h"
+#include "lang.h"
+
+#include <string.h>
 
 typedef enum {
   LETTER,

@@ -1,26 +1,13 @@
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
-#include "ast.h"
-#include "lexan.h"
-#include "prototypes.h"
-#include "memory.h"
-#include "utils.h"
-
-#define SKIP_ENDL                                 \
-  {                                               \
-    while (Symb.type == ENDL) Symb = readLexem(); \
-  }
+#include "lang.h"
 
 int8_t aggregator();
 
 appContext* Program();
-void GlobalVars(appContext* ctx);
-void FunctionDeclarations(xxx* mem);
-void FunctionArguments( xxx* args );
-astBlockNode *Block();
-astStatementNode *Line();
+void GlobalDeclarations(appContext*);
+astBlockNode* Block();
+astStatementNode* Line();
 
 astNode* Expression();
 astNode* AssignmentExpr();
@@ -37,8 +24,7 @@ astNode* AdditiveExpr();
 astNode* AdditiveExprRest(astNode*);
 astNode* MultiplicativeExpr();
 astNode* MultiplicativeExprRest(astNode*);
-astNode *UnaryExpr();
-
+astNode* UnaryExpr();
 
 LexicalSymbol Symb;
 
@@ -51,7 +37,7 @@ void Match(LexSymbolType token) {
   Symb = readLexem();
 }
 
-void MatchGetString(LexSymbolType token, char *id) {
+void MatchGetString(LexSymbolType token, char* id) {
   if (Symb.type != token) {
     printf("Match error: expected %s, got %s ...\n", symbTable[token],
            symbTable[Symb.type]);
@@ -61,7 +47,7 @@ void MatchGetString(LexSymbolType token, char *id) {
   Symb = readLexem();
 }
 
-void MatchGetNumber(LexSymbolType token, int *h) {
+void MatchGetNumber(LexSymbolType token, int* h) {
   if (Symb.type != token) {
     printf("Match error: expected %s, got %s ...\n", symbTable[token],
            symbTable[Symb.type]);
@@ -73,22 +59,20 @@ void MatchGetNumber(LexSymbolType token, int *h) {
 
 bool Check(LexSymbolType s) { return (Symb.type == s); }
 
-
 appContext* Program() {
   debug("Program");
 
   appContext* ctx = initAppContext();
 
-  GlobalVars(ctx);
-  FunctionDeclarations(ctx);
+  GlobalDeclarations(ctx);
 
   SKIP_ENDL;
 
   Match(kwMAIN);
-  astBlockNode* main = Block();
+  astBlockNode* body = Block();
   Match(ENDL);
 
-  // TODO
+  ctx->main = body;
 
   SKIP_ENDL;
 
@@ -100,8 +84,8 @@ appContext* Program() {
   return ctx;
 }
 
-void GlobalVars(appContext* ctx) {
-  debug("GlobalVars");
+void GlobalDeclarations(appContext* ctx) {
+  debug("GlobalDeclarations");
 
   SKIP_ENDL;
 
@@ -114,23 +98,11 @@ void GlobalVars(appContext* ctx) {
       MatchGetString(IDENT, buffer);
 
       newGlobalVariable(ctx, buffer);
-      newEntry(ctx.global, buffer, newUninitialized());
 
       Match(ENDL);
-      GlobalVars(mem);
+      GlobalDeclarations(ctx);
     }
-    default:
-      break;
-  }
-}
-
-void FunctionDeclarations(xxx* mem) {
-  debug("FunctionDeclaration");
-
-  SKIP_ENDL;
-
-  switch (Symb.type) {
-    case kwFUNCTION: {
+    /*case kwFUNCTION: {
       Symb = readLexem();
       char string[MAX_IDENT_LEN];
       MatchGetString(IDENT, string);
@@ -141,45 +113,42 @@ void FunctionDeclarations(xxx* mem) {
         FunctionArguments( mem );
       }
 
-      astBlockNode = Block();
+      astBlockNode* body = Block();
 
       Match(ENDL);
-      FunctionDeclarations(mem);
-    }
+      GlobalDeclarations(ctx);
+    }*/
     default:
       break;
   }
 }
 
-void FunctionArguments( xxx* args ) {
-  
+/*void FunctionArguments( xxx* args ) {
+
   debug( "FuncArguments" );
   if(Check(IDENT)){
-    
+
     char string[MAX_IDENT_LEN];
     MatchGetString(IDENT, string);
-  
+
     // TOOD f->addArgument( string, t );
     FunctionArguments( args );
   }
-}
+}*/
 
-
-astBlockNode *Block() {
+astBlockNode* Block() {
   debug("Block");
 
   Match(kwBEGIN);
   Match(ENDL);
 
-  astStatementNode *first = Line();
-  astStatementNode *last = first;
-  Match(ENDL);
+  astStatementNode* first = Line();
+  astStatementNode* last = first;
 
   while (!Check(kwEND) && !Check(EOI)) {
-    astStatementNode *curr = Line();
-    Match(ENDL);
+    astStatementNode* curr = Line();
 
-    last->next = (astNode *)curr;
+    last->next = (astNode*)curr;
     last = curr;
   }
   Match(kwEND);
@@ -217,22 +186,24 @@ astStatementNode* Line() {
       Match(ENDL);
 
       // create nodes for read statement
-      astExprVariableNode *var = newAstExprVariableNode(buffer);
-      astReadNode *rnode = newAstReadNode(var);
+      astExprVariableNode* var = newAstExprVariableNode(buffer);
+      astReadNode* rnode = newAstReadNode(var);
 
-      astStatementNode *statement = newAstStatementNode((astNode *)rnode, NULL, agg);
+      astStatementNode* statement =
+          newAstStatementNode((astNode*)rnode, NULL, agg);
       return statement;
     }
     case kwWRITE: {
       Symb = readLexem();
 
       // parse expression after write keyword
-      astNode *expr = Expression();
+      astNode* expr = Expression();
       Match(ENDL);
 
       // create nodes for write statement
-      astWriteNode *wnode = newAstWriteNode(expr);
-      astStatementNode *statement = newAstStatementNode((astNode *)wnode, NULL, agg);
+      astWriteNode* wnode = newAstWriteNode(expr);
+      astStatementNode* statement =
+          newAstStatementNode((astNode*)wnode, NULL, agg);
       return statement;
     }
     case kwWHILE: {
@@ -265,7 +236,7 @@ astStatementNode* Line() {
       MatchGetString(IDENT, buffer);
 
       // create node for variable
-      astExprVariableNode *var = newAstExprVariableNode(buffer);
+      astExprVariableNode* var = newAstExprVariableNode(buffer);
 
       // check for additional info about increment / decrement size
       if (Check(kwBY)) {
@@ -280,16 +251,21 @@ astStatementNode* Line() {
       Match(ENDL);
 
       // create nodes for increment / decrement statement
-      astIncrementNode *incr = newAstIncrementNode(var, amount);
-      astStatementNode *statement = newAstStatementNode((astNode *)incr, NULL, agg);
+      astIncrementNode* incr = newAstIncrementNode(var, amount);
+      astStatementNode* statement =
+          newAstStatementNode((astNode*)incr, NULL, agg);
       return statement;
     }
     default: {
-      return Expression();
+      astStatementNode* statement =
+          newAstStatementNode((astNode*)Expression(), NULL, agg);
+      Match(ENDL);
+
+      return statement;
     }
   }
   _UNREACHABLE;
-  return newAstStatementNode(NULL, NULL);
+  return newAstStatementNode(NULL, NULL, 0);
 }
 
 astNode* Expression() { return AssignmentExpr(); }
@@ -442,7 +418,7 @@ astNode* MultiplicativeExprRest(astNode* du) {
   }
 }
 
-astNode *UnaryExpr() {
+astNode* UnaryExpr() {
   debug("UnaryExpr");
 
   switch (Symb.type) {
@@ -451,10 +427,10 @@ astNode *UnaryExpr() {
       return UnaryExpr();
     case MINUS:
       Symb = readLexem();
-      return (astNode *)newAstExprUnaryNode(OP_MINUS, UnaryExpr());
+      return (astNode*)newAstExprUnaryNode(OP_MINUS, UnaryExpr());
     case LPAR: {
       Symb = readLexem();
-      astNode *expr = Expression();
+      astNode* expr = Expression();
       Match(RPAR);
       return expr;
     }
@@ -462,29 +438,23 @@ astNode *UnaryExpr() {
       int value;
       MatchGetNumber(NUMB, &value);
 
-      return (astNode *)newAstExprIntegerNode(value);
+      return (astNode*)newAstExprIntegerNode(value);
     }
     case IDENT: {
       char buffer[MAX_IDENT_LEN];
       MatchGetString(IDENT, buffer);
 
-      return (astNode *)newAstExprVariableNode(buffer);
-
-      switch(Symb.type) {
-        case LPAR:
-         {
+      switch (Symb.type) {
+        case LPAR: {
           fatal("Not implemented");
           /*Symb = readLexem();
           TreeFunctionENode *f = new TreeFunctionENode( string );
           FunctionArguments( f );
           Match(RPAR);
-          
+
           return f;*/
-         }
-        default:
-         {
-          return (astNode *)newAstExprVariableNode(buffer);
-         }
+        }
+        default: { return (astNode*)newAstExprVariableNode(buffer); }
       }
     }
     default:
@@ -493,7 +463,6 @@ astNode *UnaryExpr() {
       exit(EXIT_FAILURE);
   }
 }
-
 
 /*
 
@@ -960,7 +929,7 @@ void Statement(TreeBlockNode *b) {
   }
 }*/
 
-void initParser(const char *fileName) {
+void initParser(const char* fileName) {
   initLexan(fileName);
   Symb = readLexem();
 }

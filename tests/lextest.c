@@ -1,8 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "../source/lexan.h"
-#include "../source/utils.h"
+#include "../source/lang.h"
 
 int main(int argc, char* argv[]) {
   int i;

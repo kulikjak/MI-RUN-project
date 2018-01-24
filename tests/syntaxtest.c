@@ -1,9 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "../source/ast.h"
-#include "../source/parser.h"
-#include "../source/utils.h"
+#include "../source/lang.h"
 
 int main(int argc, char* argv[]) {
   int i;
@@ -14,10 +12,10 @@ int main(int argc, char* argv[]) {
     printf("=== Parsing file: \x1b[32m%s\x1b[0m ===\n", argv[1]);
 
     initParser(argv[1]);
-    astBlockNode* node = Block();
+    appContext* node = Program();
 
-    printAstTree((astNode*)node);
-    burnAstTree((astNode*)node);
+    printAstTree((astNode*)node->main);
+    burnAstTree((astNode*)node->main);
 
     printf("=== File \x1b[32m%s\x1b[0m parsed succesfully ===\n", argv[1]);
   }

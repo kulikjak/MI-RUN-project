@@ -1,8 +1,6 @@
-#include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 
-#include "ast.h"
+#include "lang.h"
 
 void printAstTree(astNode* node) {  // TODO
   if (node == NULL) return;
@@ -55,7 +53,7 @@ void printAstTree(astNode* node) {  // TODO
       break;
     }
     case N_INCREMENT: {
-      printf("INCREMENT \n");
+      printf("INCREMENT ");
       printAstTree(((astIncrementNode*)node)->var);
       printf(" BY %d", ((astIncrementNode*)node)->amount);
       break;
