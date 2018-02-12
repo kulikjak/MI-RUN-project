@@ -8,34 +8,34 @@
 
 typedef enum {
   IDENT, NUMB, STRING, PLUS, MINUS, MUL, DIV, MOD, GT, GTE, LT, LTE,
-  EQ, NEQ, LPAR, RPAR, COMMA, ENDL, ASSIGN, kwGLOBAL, kwVARIABLE,
+  EQ, NEQ, LPAR, RPAR, COMMA, ENDL, ASSIGN, ARROW, kwGLOBAL, kwVARIABLE,
   kwFUNCTION, kwARGS, kwMAIN, kwBEGIN, kwEND, kwWHILE, kwIF, kwDO,
   kwTIMES, kwINTO, kwWRITE, kwREAD, kwINCREMENT, kwDECREMENT, kwBY,
-  kwOR, kwAND, kwTRUE, kwFALSE, kwNOT, EOI, ERR, AGGREGATOR
+  kwOR, kwAND, kwTRUE, kwFALSE, kwNOT, kwELSE, EOI, ERR, AGGREGATOR
 } LexSymbolType;
 
-extern const char *symbTable[44];
+extern const char *symbTable[46];
 
 typedef struct LexicalSymbol {
   LexSymbolType type;
   char ident[MAX_IDENT_LEN];
-  int number;
+  int64_t number;
 } LexicalSymbol;
 
 typedef enum astTag {
-  N_BLOCK,
   N_STATEMENT,
-  N_ASIGN,
   N_IF,
   N_WHILE,
+  N_DO,
   N_READ,
   N_WRITE,
-  N_INCREMENT,
+  N_BOOL,
   N_INT,
   N_STRING,
   N_VAR,
   N_UNARY,
-  N_BINARY
+  N_BINARY,
+  N_CALL
 } astTag;
 
 typedef enum exprOperator {
@@ -60,23 +60,12 @@ typedef struct astNode astNode;
 // struct only for common paramener passing
 typedef struct astNode { enum astTag tag; } astNode;
 
-typedef struct astBlockNode {
-  enum astTag tag;
-  astNode* statement;
-} astBlockNode;
-
 typedef struct astStatementNode {
   enum astTag tag;
   int8_t aggregator;
   astNode* statement;
   astNode* next;
 } astStatementNode;
-
-typedef struct astAsignNode {
-  enum astTag tag;
-  astNode* left;
-  astNode* right;
-} astAsignNode;
 
 typedef struct astIfNode {
   enum astTag tag;
@@ -91,6 +80,12 @@ typedef struct astWhileNode {
   astNode* block;
 } astWhileNode;
 
+typedef struct astDoNode {
+  enum astTag tag;
+  astNode* amount;
+  astNode* block;
+} astDoNode;
+
 typedef struct astReadNode {
   enum astTag tag;
   astNode* var;
@@ -101,22 +96,15 @@ typedef struct astWriteNode {
   astNode* expr;
 } astWriteNode;
 
-typedef struct astIncrementNode {
-  enum astTag tag;
-  int amount;
-  astNode* var;
-} astIncrementNode;
-
-typedef struct astFuncCallNode {
-  enum astTag tag;
-  astNode* args;
-  astStatementNode *body;
-} astFuncCallNode;
-
 typedef struct astExprIntegerNode {
   enum astTag tag;
-  int value;
+  int64_t value;
 } astExprIntegerNode;
+
+typedef struct astExprBooleanNode {
+  enum astTag tag;
+  bool value;
+} astExprBooleanNode;
 
 typedef struct astExprStringNode {
   enum astTag tag;
@@ -141,22 +129,33 @@ typedef struct astExprBinaryNode {
   astNode* right;
 } astExprBinaryNode;
 
+typedef struct astExprCallNode {
+  enum astTag tag;
+  int8_t aggr;
+  astNode* var;
+  char name[1];
+} astExprCallNode;
+
+
 void printAstTree(astNode*);
 void burnAstTree(astNode*);
 
-astBlockNode* newAstBlockNode(astStatementNode*);
 astStatementNode* newAstStatementNode(astNode*, astStatementNode*, int8_t);
-astAsignNode* newAstAsignNode(astExprVariableNode*, astNode*);
+astIfNode* newAstIfNode(astNode* condition, astNode* thenBlk, astNode* elseBlk);
+astWhileNode* newAstWhileNode(astNode* condition, astNode* block);
+astDoNode* newAstDoNode(astNode* amount, astNode* block);
 astReadNode* newAstReadNode(astExprVariableNode* _v);
 astWriteNode* newAstWriteNode(astNode*);
-astIncrementNode* newAstIncrementNode(astExprVariableNode*, int);
 astExprVariableNode* newAstExprVariableNode(char*);
-astExprIntegerNode* newAstExprIntegerNode(int);
+astExprIntegerNode* newAstExprIntegerNode(int64_t);
+astExprBooleanNode* newAstExprBooleanNode(bool __v);
+astExprStringNode* newAstExprStringNode(char* __b);
 astExprUnaryNode* newAstExprUnaryNode(exprOperator, astNode*);
 astExprBinaryNode* newAstExprBinaryNode(exprOperator, astNode*, astNode*);
+astExprCallNode* newAstExprCallNode(const char* name, int8_t aggr, astNode* var);
 
-void initLexan(const char * fileName);
 void initInput(const char* fileName);
+void initLexan(const char * fileName);
 void initParser(const char* fileName);
 
 char getChar();

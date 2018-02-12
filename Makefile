@@ -1,4 +1,3 @@
-CFLAGS=-O2 -Wall -Wextra -pedantic
 
 all: LexTest SyntaxTest
 
@@ -8,8 +7,11 @@ LexTest:
 SyntaxTest:
 	$(MAKE) -C source ../SyntaxTest
 
+Lang:
+	$(MAKE) -C source ../Lang
+
 clean:
-	rm -f LexTest SyntaxTest
+	rm -f LexTest SyntaxTest Lang
 	$(MAKE) -C source clean
 
-.PHONY: all clean LexTest SyntaxTest
+.PHONY: all clean LexTest SyntaxTest Lang

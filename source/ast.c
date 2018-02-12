@@ -5,39 +5,43 @@
 void printAstTree(astNode* node) {  // TODO
   if (node == NULL) return;
   switch (node->tag) {
-    case N_BLOCK: {
-      printAstTree(((astBlockNode*)node)->statement);
-      break;
-    }
     case N_STATEMENT: {
-      printAstTree(((astStatementNode*)node)->statement);
+      if (((astStatementNode*)node)->statement->tag == N_STATEMENT) {
+        printf("BEGIN\n");
+        printAstTree(((astStatementNode*)node)->statement);
+        printf("END\n");
+      } else {
+        printAstTree(((astStatementNode*)node)->statement);
+      }
       printf("\n");
       printAstTree(((astStatementNode*)node)->next);
       break;
     }
-    case N_ASIGN: {
-      printAstTree(((astAsignNode*)node)->left);
-      printf(" = ");
-      printAstTree(((astAsignNode*)node)->right);
-      break;
-    }
     case N_IF: {
-    	printf("IF ");
+      printf("IF ");
       printAstTree(((astIfNode*)node)->cond);
       printf("\n");
       printAstTree(((astIfNode*)node)->thenBlk);
       if (((astIfNode*)node)->elseBlk) {
-      	printf("ELSE\n");
-      	printAstTree(((astIfNode*)node)->elseBlk);
-    	}
-    	printf("DONE\n");
+        printf("ELSE\n");
+        printAstTree(((astIfNode*)node)->elseBlk);
+      }
+      printf("DONE\n");
       break;
     }
     case N_WHILE: {
-    	printf("WHILE ");
+      printf("WHILE ");
       printAstTree(((astWhileNode*)node)->cond);
       printf("\n");
       printAstTree(((astWhileNode*)node)->block);
+      printf("DONE\n");
+      break;
+    }
+    case N_DO: {
+      printf("DO ");
+      printAstTree(((astDoNode*)node)->amount);
+      printf("TIMES\n");
+      printAstTree(((astDoNode*)node)->block);
       printf("DONE\n");
       break;
     }
@@ -52,22 +56,16 @@ void printAstTree(astNode* node) {  // TODO
       printAstTree(((astWriteNode*)node)->expr);
       break;
     }
-    case N_INCREMENT: {
-      printf("INCREMENT ");
-      printAstTree(((astIncrementNode*)node)->var);
-      printf(" BY %d", ((astIncrementNode*)node)->amount);
-      break;
-    }
     case N_INT: {
-    	printf("%d", ((astExprIntegerNode*)node)->value);
+      printf("%ld", ((astExprIntegerNode*)node)->value);
       break;
     }
     case N_STRING: {
-    	printf("%s", ((astExprStringNode*)node)->string);
+      printf("%s", ((astExprStringNode*)node)->string);
       break;
     }
     case N_VAR: {
-    	printf("_%s", ((astExprVariableNode*)node)->name);
+      printf("_%s", ((astExprVariableNode*)node)->name);
       break;
     }
     case N_UNARY: {
@@ -84,7 +82,7 @@ void printAstTree(astNode* node) {  // TODO
     case N_BINARY: {
       printf("(");
       printAstTree(((astExprBinaryNode*)node)->left);
-      switch (((astExprUnaryNode*)node)->op) {
+      switch (((astExprBinaryNode*)node)->op) {
         case OP_ASSIGN:
           printf(" := ");
           break;
@@ -140,18 +138,9 @@ void printAstTree(astNode* node) {  // TODO
 void burnAstTree(astNode* node) {
   if (node == NULL) return;
   switch (node->tag) {
-    case N_BLOCK: {
-      burnAstTree(((astBlockNode*)node)->statement);
-      break;
-    }
     case N_STATEMENT: {
       burnAstTree(((astStatementNode*)node)->statement);
       burnAstTree(((astStatementNode*)node)->next);
-      break;
-    }
-    case N_ASIGN: {
-      burnAstTree(((astAsignNode*)node)->left);
-      burnAstTree(((astAsignNode*)node)->right);
       break;
     }
     case N_IF: {
@@ -165,16 +154,17 @@ void burnAstTree(astNode* node) {
       burnAstTree(((astWhileNode*)node)->block);
       break;
     }
+    case N_DO: {
+      burnAstTree(((astDoNode*)node)->amount);
+      burnAstTree(((astDoNode*)node)->block);
+      break;
+    }
     case N_READ: {
       burnAstTree(((astReadNode*)node)->var);
       break;
     }
     case N_WRITE: {
       burnAstTree(((astWriteNode*)node)->expr);
-      break;
-    }
-    case N_INCREMENT: {
-      burnAstTree(((astIncrementNode*)node)->var);
       break;
     }
     case N_UNARY: {
@@ -186,20 +176,18 @@ void burnAstTree(astNode* node) {
       burnAstTree(((astExprBinaryNode*)node)->right);
       break;
     }
+    case N_CALL: {
+      burnAstTree(((astExprCallNode*)node)->var);
+      break;
+    }
     default:
       break;
   }
   free(node);
 }
 
-astBlockNode* newAstBlockNode(astStatementNode* __s) {
-  astBlockNode* _n = (astBlockNode*)malloc(sizeof(astBlockNode));
-  _n->tag = N_BLOCK;
-  _n->statement = (astNode*)__s;
-  return _n;
-}
-
-astStatementNode* newAstStatementNode(astNode* __s, astStatementNode* __n, int8_t aggregator) {
+astStatementNode* newAstStatementNode(astNode* __s, astStatementNode* __n,
+                                      int8_t aggregator) {
   astStatementNode* _n = (astStatementNode*)malloc(sizeof(astStatementNode));
   _n->tag = N_STATEMENT;
   _n->aggregator = aggregator;
@@ -208,12 +196,29 @@ astStatementNode* newAstStatementNode(astNode* __s, astStatementNode* __n, int8_
   return _n;
 }
 
-astAsignNode* newAstAsignNode(astExprVariableNode* __v, astNode* __e) {
-  astAsignNode* _n = (astAsignNode*)malloc(sizeof(astAsignNode));
-  _n->tag = N_ASIGN;
-  _n->left = (astNode*)__v;
-  _n->right = __e;
+astIfNode* newAstIfNode(astNode* condition, astNode* thenBlk, astNode* elseBlk) {
+  astIfNode* _n = (astIfNode*)malloc(sizeof(astIfNode));
+  _n->tag = N_IF;
+  _n->cond = condition;
+  _n->thenBlk = thenBlk;
+  _n->elseBlk = elseBlk;
   return _n;
+}
+
+astWhileNode* newAstWhileNode(astNode* condition, astNode* block) {
+  astWhileNode* _n = (astWhileNode*)malloc(sizeof(astWhileNode));
+  _n->tag = N_WHILE;
+  _n->cond = condition;
+  _n->block = block;
+  return _n;  
+}
+
+astDoNode* newAstDoNode(astNode* amount, astNode* block) {
+  astDoNode* _n = (astDoNode*)malloc(sizeof(astDoNode));
+  _n->tag = N_DO;
+  _n->amount = amount;
+  _n->block = block;
+  return _n;   
 }
 
 astReadNode* newAstReadNode(astExprVariableNode* __v) {
@@ -230,22 +235,7 @@ astWriteNode* newAstWriteNode(astNode* __e) {
   return _n;
 }
 
-astIncrementNode* newAstIncrementNode(astExprVariableNode* __v, int __a) {
-  astIncrementNode* _n = (astIncrementNode*)malloc(sizeof(astIncrementNode));
-  _n->tag = N_INCREMENT;
-  _n->var = (astNode*)__v;
-  _n->amount = __a;
-  return _n;
-}
-
-/*astTypeNode* newAstTypeNode(varType __t) {
-  astTypeNode* _n = (astTypeNode*)malloc(sizeof(astTypeNode));
-  _n->tag = N_TYPE;
-  _n->type = __t;
-  return _n;
-}*/
-
-astExprIntegerNode* newAstExprIntegerNode(int __v) {
+astExprIntegerNode* newAstExprIntegerNode(int64_t __v) {
   astExprIntegerNode* _n =
       (astExprIntegerNode*)malloc(sizeof(astExprIntegerNode));
   _n->tag = N_INT;
@@ -253,11 +243,29 @@ astExprIntegerNode* newAstExprIntegerNode(int __v) {
   return _n;
 }
 
+astExprBooleanNode* newAstExprBooleanNode(bool __v) {
+  astExprBooleanNode* _n =
+      (astExprBooleanNode*)malloc(sizeof(astExprBooleanNode));
+  _n->tag = N_BOOL;
+  _n->value = __v;
+  return _n;
+}
+
+astExprStringNode* newAstExprStringNode(char* __b) {
+  int32_t len = strlen(__b);
+  astExprStringNode* _n =
+      (astExprStringNode*)malloc(sizeof(astExprStringNode) + len);
+  _n->tag = N_STRING;
+  strncpy(_n->string, __b, len + 1);
+  return _n;
+}
+
 astExprVariableNode* newAstExprVariableNode(char* __b) {
+  int32_t len = strlen(__b);
   astExprVariableNode* _n =
-      (astExprVariableNode*)malloc(sizeof(astExprVariableNode) + sizeof(__b));
+      (astExprVariableNode*)malloc(sizeof(astExprVariableNode) + len);
   _n->tag = N_VAR;
-  strncpy(_n->name, __b, sizeof(__b) + 1);
+  strncpy(_n->name, __b, len + 1);
   return _n;
 }
 
@@ -277,4 +285,14 @@ astExprBinaryNode* newAstExprBinaryNode(exprOperator __op, astNode* __l,
   _n->left = __l;
   _n->right = __r;
   return _n;
+}
+
+astExprCallNode* newAstExprCallNode(const char* name, int8_t aggr, astNode* var) {
+  int32_t len = strlen(name);
+  astExprCallNode* node = (astExprCallNode*)malloc(sizeof(astExprCallNode) + len);
+  node->tag = N_CALL;
+  node->aggr = aggr;
+  node->var = var;
+  strncpy(node->name, name, len + 1);
+  return node;
 }

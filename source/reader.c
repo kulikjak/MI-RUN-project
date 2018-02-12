@@ -10,7 +10,7 @@ void initInput(const char *filename) {
   if (!filename) fatal("No input file.");
 
   inputFile = fopen(filename, "rt");
-  if (!inputFile) fatal("Cannot open fiven input file.");
+  if (!inputFile) fatal("Cannot open given input file.");
 }
 
 char getChar() {

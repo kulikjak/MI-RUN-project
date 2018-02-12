@@ -2,23 +2,15 @@
 
 #Aggregator functions:
 
-sum &1
-multiply &1
-modus &1
-median &1
-iterate &1 into a
-rev_iterate &1 into a
+sum
+multiply
+average
+clear
 
-
-<program> ::= <glob_decl> <func_decl> <main>
+<program> ::= <glob_decl>  <main>
 <glob_decl> ::= <global> <glob_decl> | eps
-<func_decl> ::= <function> <func_decl> | eps
 
 <global> ::= "global" "variable" <var__> <endl__>
-
-<function> ::= "function" <functionname__> <func_decl_args> <block> <endl__>
-<func_decl_args> ::= "args" <func_args>
-
 <main> ::= "main" <block> <endl__>
 
 <block> ::= "begin" <endl_> <statement> <block_rest> "end"
@@ -32,7 +24,7 @@ rev_iterate &1 into a
 
 <if> ::= <aggregator> "if" <expr_> <block> <endl_>
 
-<do> ::= <aggregator> "do" <number> "times" <block> <endl_>
+<do> ::= <aggregator> "do" <expr_> "times" <block> <endl_>
 
 <read> ::= <aggregator> "read" "into" <var__> <endl__> OK
 
@@ -45,7 +37,7 @@ rev_iterate &1 into a
 
 <aggregator> ::= <aggregator__> | eps
 
-<amount_> ::= "by" <number> | eps
+<amount_> ::= "by" <expr_> | eps
 
 <func_args> ::= <var__> <func_args_rest>
 <func_args_rest> ::= <var__> <func_args_rest> | eps

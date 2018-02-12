@@ -3,12 +3,15 @@
 
 #include <assert.h>
 #include <stdint.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 typedef uint8_t bool;
 #define TRUE 1
 #define FALSE 0
+
+#define HEAP_SIZE 1024
+#define MAS_LIMIT 512
 
 #define DEBUG__ FALSE
 #define _UNREACHABLE assert(0)
@@ -17,75 +20,67 @@ typedef uint8_t bool;
 
 typedef enum objTag {
   T_UNINITIALIZED = 0,
-  T_BOOLEAN,
-  T_INTEGER,
-  T_BIGINTEGER,
-  T_STRING
+  T_BOOLEAN = 1,
+  T_INTEGER = 2,
+  T_BIGINTEGER = 3,
+  T_STRING = 4,
+  T_ENVIRONMENT = 5
 } objTag;
 
 typedef struct object {
-	enum objTag tag;
+  enum objTag tag;
 } object;
 
 typedef object* OBJ;
 
-struct objBoolean {
-  enum objTag tag;
-  bool val;
-};
-
-struct objInteger {
-  enum objTag tag;
-  int32_t val;
-};
-
-struct objBigInteger {
-  enum objTag tag;
-  int64_t val;
-};
-
-struct objString {
-  enum objTag tag;
-  int size;
-  char string[1];
-};
-
 typedef struct OBJEntry {
-  char key[20];
+  OBJ key;
   OBJ value;
 } OBJEntry;
 
-typedef struct FuncEntry {
-  char key[20];
-  astBlockNode* value;
-} FuncEntry;
+typedef struct objBoolean {
+  enum objTag tag;
+  bool val;
+} objBoolean;
 
-typedef struct LocalContext {
+typedef struct objInteger {
+  enum objTag tag;
+  int32_t val;
+} objInteger;
+
+typedef struct objBigInteger {
+  enum objTag tag;
+  int64_t val;
+} objBigInteger;
+
+typedef struct objString {
+  enum objTag tag;
+  int32_t size;
+  char string[1];
+} objString;
+
+typedef struct objEnvironment {
+  enum objTag tag;
   int32_t size;
   int32_t count;
+  struct objEnvironment* parent;
   OBJEntry* objects;
-  struct Context* parent;
-  bool restricted;
-} LocalContext;
+} objEnvironment;
 
-typedef struct FuncContext {
-  int32_t size;
-  int32_t count;
-  FuncEntry* objects;
-} FuncContext;
-
-typedef struct GlobalContext {
-  int32_t size;
-  int32_t count;
-  OBJEntry* objects;
-} GlobalContext;
-
-typedef struct appContext {
-  GlobalContext* global;
-  FuncContext* fuction;
-  LocalContext* local;
-  astBlockNode* main;
+typedef struct {
+  objEnvironment* global;
+  objEnvironment* local;
+  astStatementNode* main;
 } appContext;
+
+typedef struct {
+  int32_t size;
+  int32_t count;
+  OBJ* array;
+} appAggregator;
+
+// Global applocation context variable
+appContext gAppCtx;
 
 #include "prototypes.h"
 

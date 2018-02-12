@@ -1,7 +1,7 @@
-CFLAGS=-O2 -Wall -Wextra -pedantic
+CFLAGS=-O2 -Wall -Wextra -pedantic -g
 HEADERS=frontend.h lang.h prototypes.h
 
-OBJS=ast.o reader.o lexan.o utils.o memory.o parser.o
+OBJS=ast.o reader.o lexan.o utils.o memory.o parser.o runtime.o io.o functions.o main.o
 
 all: ../LexTest ../SyntaxTest ../Lang
 

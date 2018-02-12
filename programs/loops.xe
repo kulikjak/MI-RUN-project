@@ -1,0 +1,16 @@
+main begin
+  write "Give me amount of loops:"
+  read into amount
+
+  write "Using while loop:"
+  i := 0
+  while i < amount begin
+    write "while loop"
+    i := i + 1
+  end
+
+  write "Using do loop:"
+  do amount times begin
+    write "do loop"
+  end
+end

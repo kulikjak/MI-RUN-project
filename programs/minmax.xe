@@ -1,0 +1,31 @@
+main begin
+  write "Insert three numbers:"
+  read into one
+  read into two
+  read into three
+
+  min := one
+  max := one
+
+  if two < min begin
+    min := two
+  end
+
+  if three < min begin
+    min := three
+  end
+
+  if two > max begin
+    max := two
+  end
+
+  if three > max begin
+    max := three
+  end
+
+  write "Minimum:"
+  write min
+
+  write "Maximum:"
+  write max
+end

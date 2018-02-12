@@ -11,16 +11,16 @@ typedef enum {
   NO_TYPE
 } InputCharType;
 
-const char* symbTable[44] = {
+const char* symbTable[46] = {
     "IDENT",      "NUMB",       "STRING", "PLUS",        "MINUS",
     "MUL",        "DIV",        "MOD",    "GT",          "GTE",
     "LT",         "LTE",        "EQ",     "NEQ",         "LPAR",
-    "RPAR",       "COMMA",      "ENDL",   "ASSIGN",      "kwGLOBAL",
+    "RPAR",       "COMMA",      "ENDL",   "ASSIGN",      "ARROW", "kwGLOBAL",
     "kwVARIABLE", "kwFUNCTION", "kwARGS", "kwMAIN",      "kwBEGIN",
     "kwEND",      "kwWHILE",    "kwIF",   "kwDO",        "kwTIMES",
     "kwINTO",     "kwWRITE",    "kwREAD", "kwINCREMENT", "kwDECREMENT",
     "kwBY",       "kwOR",       "kwAND",  "kwTRUE",      "kwFALSE",
-    "kwNOT",      "EOI",        "ERR",    "AGGREGATOR"};
+    "kwNOT",      "kwELSE",     "EOI",    "ERR",         "AGGREGATOR"};
 
 static int character;        // vstupni znak
 static InputCharType input;  // vstupni symbol
@@ -71,6 +71,7 @@ const struct {
                     {"true", kwTRUE},
                     {"false", kwFALSE},
                     {"not", kwNOT},
+                    {"else", kwELSE},
                     {NULL, (LexSymbolType)0}};
 
 LexSymbolType keyWord(char* id) {
@@ -96,9 +97,8 @@ q0:
       readInput();
       return data;
     case '-':
-      data.type = MINUS;
       readInput();
-      return data;
+      goto q10;
     case '*':
       data.type = MUL;
       readInput();
@@ -286,6 +286,17 @@ q9:  // symbols after !
     default:
       data.type = ERR;
       fatal("Nedovoleny znak.");
+      return data;
+  }
+
+q10:  // symbols after -
+  switch (character) {
+    case '>':
+      data.type = ARROW;
+      readInput();
+      return data;
+    default:
+      data.type = MINUS;
       return data;
   }
 }

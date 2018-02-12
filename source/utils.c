@@ -6,23 +6,11 @@ void fatal(const char* message) {
   exit(EXIT_FAILURE);
 }
 
-void error(char* message, OBJ object) {
-  fprintf(stderr, "error: %s", message);
-  if (object != NULL) {
-    fprintf(stderr, " ");
-    // TODO
-  }
-  fprintf(stderr, "\n");
+void fatalExt(const char* first, const char* second) {
+  fprintf(stderr, "fatal: %s%s\n", first, second);
+  exit(EXIT_FAILURE);
 }
 
 void debug(const char* message) {
   if (DEBUG__) fprintf(stderr, "[Debug]: %s\n", message);
-}
-
-void argumentCountError(char* functionName, int expected, int given) {
-  char msg[256];
-
-  snprintf(msg, sizeof(msg), "[%s] expects %d arguments (%d given)",
-           functionName, expected, given);
-  fatal(msg);
 }

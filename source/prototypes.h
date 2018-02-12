@@ -1,15 +1,45 @@
 
-void fatal(const char* message);
 void debug(const char* message);
-void error(char* message, OBJ object);
+void fatal(const char* message);
+void fatalExt(const char* first, const char* second);
 
-LocalContext* newLocalContext(int32_t size);
-GlobalContext* newGlobalContext(int32_t size);
-FuncContext* newFuncContext(int32_t size);
+void initializeApplicationMemory();
+void initializeAggregatorMemory();
+void freeAggregatorMemory();
 
-appContext* initAppContext();
+appAggregator* memoryGetAggregator(int8_t number);
 
+void heapFreeRest();
+void heapMarkAndSweep();
+void pushLocalContext(bool restricted);
+void popLocalContext();
+void memoryAggregatorAdd(int8_t number, OBJ res);
 
-appContext* Program();
+OBJEntry* memoryGetObjectEntry(const char* key);
+OBJ memoryGetObject(const char* key);
 
-void newGlobalVariable(appContext* ctx, const char* name);
+void newGlobalVariable(const char* name);
+OBJEntry* _newLocalVariable(const char* name, OBJ variable);
+
+OBJ newUninitialized();
+OBJ newBoolean(bool val);
+OBJ newInteger(int32_t val);
+OBJ newBigInteger(int64_t val);
+OBJ newAutoInteger(int64_t val);
+OBJ newString(const char* string);
+OBJ newEnvironment(struct objEnvironment* parent, bool restricted);
+
+OBJ cloneObject(const OBJ obj);
+
+void ParseProgram();
+
+void runProgram();
+void statementLoop(astNode* node);
+OBJ eval(astNode* node);
+
+void printMemoryStatus();
+void printObject(OBJ obj);
+void printObjectVerbose(OBJ obj);
+OBJ getObjectFromBuffer(char* buffer);
+
+OBJ handleFunctionCall(const char* name, int8_t aggr);

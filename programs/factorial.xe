@@ -1,0 +1,15 @@
+main begin
+  write "Give me some number:"
+  read into limit
+
+  i := 2
+  fact := 1
+
+  while i <= limit begin
+    fact := fact * i
+    i := i + 1
+  end
+
+  write "Factorial:"
+  write fact
+end

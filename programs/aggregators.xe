@@ -1,0 +1,27 @@
+main begin
+  write "Testing aggregators"
+
+&1  6
+&1  i := 3
+
+    sum(&1 -> a)
+    write a
+
+&2  1
+&2  2
+&2  3
+&2  4
+
+    multiply(&2 -> a)
+    write a
+    
+    clean(&2)
+
+&2  10
+&2  12
+&2  2
+
+    average(&2 -> i)
+    write i
+
+end
