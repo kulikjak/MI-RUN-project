@@ -1,0 +1,4 @@
+main begin
+  write - 2
+  assert "Kulda"
+end

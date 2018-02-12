@@ -1,5 +1,5 @@
-#include <string.h>
 #include <ctype.h>
+#include <string.h>
 
 #include "lang.h"
 
@@ -7,10 +7,8 @@ OBJ getObjectFromBuffer(char* buffer) {
   int64_t val;
   int32_t i, len = strlen(buffer);
 
-  if (buffer[len-1] == '\n')
-    buffer[--len] = 0;
-  if (buffer[len-1] == '\r')
-    buffer[--len] = 0;
+  if (buffer[len - 1] == '\n') buffer[--len] = 0;
+  if (buffer[len - 1] == '\r') buffer[--len] = 0;
 
   val = 0;
   for (i = (buffer[0] == '-') ? 1 : 0; i < len; i++) {
@@ -28,16 +26,16 @@ void printObject(OBJ obj) {
     case T_UNINITIALIZED:
       fatal("Cannot print uninitialized variable.");
     case T_BOOLEAN:
-      printf("%s", (((struct objBoolean*)obj)->val) ? "TRUE" : "FALSE");
+      printf("%s", (((objBoolean*)obj)->val) ? "TRUE" : "FALSE");
       break;
     case T_INTEGER:
-      printf("%d", ((struct objInteger*)obj)->val);
+      printf("%d", ((objInteger*)obj)->val);
       break;
     case T_BIGINTEGER:
-      printf("%ld", ((struct objBigInteger*)obj)->val);
+      printf("%ld", ((objBigInteger*)obj)->val);
       break;
     case T_STRING:
-      printf("%s", ((struct objString*)obj)->string);
+      printf("%s", ((objString*)obj)->string);
       break;
     default:
       fatal("Unexpected variable type: cannot be printed.");

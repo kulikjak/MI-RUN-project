@@ -21,7 +21,7 @@ OBJ _funcSum(int8_t aggrNum) {
       fatal("Aggregators can right now work only with integers");
 
     OBJ temp = aggr->array[i];
-    counter += (temp->tag == T_INTEGER) ? (int64_t)(((struct objInteger*)temp)->val) : ((struct objBigInteger*)temp)->val;
+    counter += GET_INT_VALUE(temp);
   }
   return newAutoInteger(counter);
 }
@@ -41,9 +41,9 @@ OBJ _funcAverage(int8_t aggrNum) {
       fatal("Aggregators can right now work only with integers");
 
     OBJ temp = aggr->array[i];
-    counter += (temp->tag == T_INTEGER) ? (int64_t)(((struct objInteger*)temp)->val) : ((struct objBigInteger*)temp)->val;
+    counter += GET_INT_VALUE(temp);
   }
-  return newAutoInteger((int64_t)(counter/(aggr->count)));
+  return newAutoInteger((int64_t)(counter / (aggr->count)));
 }
 
 OBJ _funcMultiply(int8_t aggrNum) {
@@ -55,14 +55,14 @@ OBJ _funcMultiply(int8_t aggrNum) {
       fatal("Aggregators can right now work only with integers");
 
     OBJ temp = aggr->array[i];
-    counter *= (temp->tag == T_INTEGER) ? (int64_t)(((struct objInteger*)temp)->val) : ((struct objBigInteger*)temp)->val;
+    counter *= GET_INT_VALUE(temp);
   }
   return newAutoInteger(counter);
 }
 
 OBJ handleFunctionCall(const char* name, int8_t aggr) {
   int64_t function = _hashFunctionName(name);
-  switch(function) {
+  switch (function) {
     case 53:
       return _funcSum(aggr);
     case 790:
@@ -75,4 +75,3 @@ OBJ handleFunctionCall(const char* name, int8_t aggr) {
   fatalExt("Unknown function called: ", name);
   return NULL;
 }
-

@@ -14,11 +14,10 @@ void runProgram() {
 }
 
 void statementLoop(astNode* node) {
-  if (node->tag != N_STATEMENT)
-    fatal("Unexpected tree sequence.");
+  if (node->tag != N_STATEMENT) fatal("Unexpected tree sequence.");
 
   astStatementNode* statement = (astStatementNode*)node;
-  while(statement) {
+  while (statement) {
     OBJ res = eval(statement->statement);
     if (statement->aggregator != -1)
       memoryAggregatorAdd(statement->aggregator, res);
@@ -45,30 +44,13 @@ bool _evalToBoolean(OBJ object) {
   return FALSE;
 }
 
-OBJ _handleUnaryMinus(OBJ obj) {
-  switch (obj->tag) {
-    case T_UNINITIALIZED:
-      fatal("Cannot work with uninitialized objects.");
-    case T_BOOLEAN:
-      fatal("Unary minus cannot be used with Boolean objects.");
-    case T_INTEGER: {
-      OBJ clone = cloneObject(obj);
-      ((struct objInteger*)clone)->val *= -1;
-      return clone;
-    }
-    case T_BIGINTEGER: {
-      OBJ clone = cloneObject(obj);
-      ((struct objBigInteger*)clone)->val *= -1;
-      return clone;
-    }
-    case T_STRING:
-      fatal("Unary minus cannot be used with String objects.");
-    default:
-      fatal("Unknown variable type.");
-      return NULL;
-  }
+inline OBJ _handleUnaryMinus(OBJ obj) {
+  INT_ONLY_CHECK(obj, "Unary minus");
+
+  int64_t val = GET_INT_VALUE(obj);
+  return newAutoInteger(val * -1);
 }
-OBJ _handleBinaryPlus(OBJ left, OBJ right) {
+/*OBJ _handleBinaryPlus(OBJ left, OBJ right) {
   if (left->tag == T_UNINITIALIZED || right->tag == T_UNINITIALIZED)
     fatal("Cannot work with uninitialized objects.");
   if (left->tag == T_BOOLEAN || right->tag == T_BOOLEAN)
@@ -79,88 +61,55 @@ OBJ _handleBinaryPlus(OBJ left, OBJ right) {
   if ((left->tag == T_INTEGER || left->tag == T_BIGINTEGER) &&
       (right->tag == T_INTEGER || right->tag == T_BIGINTEGER)) {
 
-    int64_t leftVal = (left->tag == T_INTEGER) ? (int64_t)(((struct objInteger*)left)->val) : ((struct objBigInteger*)left)->val;
-    int64_t rightVal = (right->tag == T_INTEGER) ? (int64_t)(((struct objInteger*)right)->val) : ((struct objBigInteger*)right)->val;
+    int64_t leftVal = GET_INT_VALUE(left);
+    int64_t rightVal = GET_INT_VALUE(right);
     return newAutoInteger(leftVal + rightVal);
   }
   fatal("Unknown variable type.");
   return NULL;
+}*/
+inline OBJ _handleBinaryPlus(OBJ left, OBJ right) {
+  INT_ONLY_CHECK(left, "Binary plus");
+  INT_ONLY_CHECK(right, "Binary plus");
+
+  int64_t leftVal = GET_INT_VALUE(left);
+  int64_t rightVal = GET_INT_VALUE(right);
+  return newAutoInteger(leftVal + rightVal);
 }
-OBJ _handleBinaryMinus(OBJ left, OBJ right) {
-  if (left->tag == T_UNINITIALIZED || right->tag == T_UNINITIALIZED)
-    fatal("Cannot work with uninitialized objects.");
-  if (left->tag == T_BOOLEAN || right->tag == T_BOOLEAN)
-    fatal("Binary minus cannot be used with Boolean objects.");
-  if (left->tag == T_STRING || right->tag == T_STRING)
-    fatal("Binary minus cannot be used with String objects.");
+inline OBJ _handleBinaryMinus(OBJ left, OBJ right) {
+  INT_ONLY_CHECK(left, "Binary minus");
+  INT_ONLY_CHECK(right, "Binary minus");
 
-  if ((left->tag == T_INTEGER || left->tag == T_BIGINTEGER) &&
-      (right->tag == T_INTEGER || right->tag == T_BIGINTEGER)) {
-
-    int64_t leftVal = (left->tag == T_INTEGER) ? (int64_t)(((struct objInteger*)left)->val) : ((struct objBigInteger*)left)->val;
-    int64_t rightVal = (right->tag == T_INTEGER) ? (int64_t)(((struct objInteger*)right)->val) : ((struct objBigInteger*)right)->val;
-    return newAutoInteger(leftVal - rightVal);
-  }
-  fatal("Unknown variable type.");
-  return NULL;
+  int64_t leftVal = GET_INT_VALUE(left);
+  int64_t rightVal = GET_INT_VALUE(right);
+  return newAutoInteger(leftVal - rightVal);
 }
-OBJ _handleBinaryMul(OBJ left, OBJ right) {
-  if (left->tag == T_UNINITIALIZED || right->tag == T_UNINITIALIZED)
-    fatal("Cannot work with uninitialized objects.");
-  if (left->tag == T_BOOLEAN || right->tag == T_BOOLEAN)
-    fatal("Binary multiplication cannot be used with Boolean objects.");
-  if (left->tag == T_STRING || right->tag == T_STRING)
-    fatal("Binary multiplication cannot be used with String objects.");
+inline OBJ _handleBinaryMul(OBJ left, OBJ right) {
+  INT_ONLY_CHECK(left, "Binary multiplication");
+  INT_ONLY_CHECK(right, "Binary multiplication");
 
-  if ((left->tag == T_INTEGER || left->tag == T_BIGINTEGER) &&
-      (right->tag == T_INTEGER || right->tag == T_BIGINTEGER)) {
-
-    int64_t leftVal = (left->tag == T_INTEGER) ? (int64_t)(((struct objInteger*)left)->val) : ((struct objBigInteger*)left)->val;
-    int64_t rightVal = (right->tag == T_INTEGER) ? (int64_t)(((struct objInteger*)right)->val) : ((struct objBigInteger*)right)->val;
-    return newAutoInteger(leftVal * rightVal);
-  }
-  fatal("Unknown variable type.");
-  return NULL;
+  int64_t leftVal = GET_INT_VALUE(left);
+  int64_t rightVal = GET_INT_VALUE(right);
+  return newAutoInteger(leftVal * rightVal);
 }
-OBJ _handleBinaryDiv(OBJ left, OBJ right) {
-  if (left->tag == T_UNINITIALIZED || right->tag == T_UNINITIALIZED)
-    fatal("Cannot work with uninitialized objects.");
-  if (left->tag == T_BOOLEAN || right->tag == T_BOOLEAN)
-    fatal("Binary division cannot be used with Boolean objects.");
-  if (left->tag == T_STRING || right->tag == T_STRING)
-    fatal("Binary division cannot be used with String objects.");
+inline OBJ _handleBinaryDiv(OBJ left, OBJ right) {
+  INT_ONLY_CHECK(left, "Binary division");
+  INT_ONLY_CHECK(right, "Binary division");
 
-  if ((left->tag == T_INTEGER || left->tag == T_BIGINTEGER) &&
-      (right->tag == T_INTEGER || right->tag == T_BIGINTEGER)) {
-
-    int64_t leftVal = (left->tag == T_INTEGER) ? (int64_t)(((struct objInteger*)left)->val) : ((struct objBigInteger*)left)->val;
-    int64_t rightVal = (right->tag == T_INTEGER) ? (int64_t)(((struct objInteger*)right)->val) : ((struct objBigInteger*)right)->val;
-    return newAutoInteger(leftVal / rightVal);
-  }
-  fatal("Unknown variable type.");
-  return NULL;
+  int64_t leftVal = GET_INT_VALUE(left);
+  int64_t rightVal = GET_INT_VALUE(right);
+  return newAutoInteger(leftVal / rightVal);
 }
-OBJ _handleBinaryMod(OBJ left, OBJ right) {
-  if (left->tag == T_UNINITIALIZED || right->tag == T_UNINITIALIZED)
-    fatal("Cannot work with uninitialized objects.");
-  if (left->tag == T_BOOLEAN || right->tag == T_BOOLEAN)
-    fatal("Binary modulo cannot be used with Boolean objects.");
-  if (left->tag == T_STRING || right->tag == T_STRING)
-    fatal("Binary modulo cannot be used with String objects.");
+inline OBJ _handleBinaryMod(OBJ left, OBJ right) {
+  INT_ONLY_CHECK(left, "Binary modulo");
+  INT_ONLY_CHECK(right, "Binary modulo");
 
-  if ((left->tag == T_INTEGER || left->tag == T_BIGINTEGER) &&
-      (right->tag == T_INTEGER || right->tag == T_BIGINTEGER)) {
-
-    int64_t leftVal = (left->tag == T_INTEGER) ? (int64_t)(((struct objInteger*)left)->val) : ((struct objBigInteger*)left)->val;
-    int64_t rightVal = (right->tag == T_INTEGER) ? (int64_t)(((struct objInteger*)right)->val) : ((struct objBigInteger*)right)->val;
-    return newAutoInteger(leftVal % rightVal);
-  }
-  fatal("Unknown variable type.");
-  return NULL;
+  int64_t leftVal = GET_INT_VALUE(left);
+  int64_t rightVal = GET_INT_VALUE(right);
+  return newAutoInteger(leftVal % rightVal);
 }
-OBJ _handleBinaryEq(OBJ left, OBJ right) {
-  if (left->tag != right->tag)
-    return newBoolean(FALSE);
+inline OBJ _handleBinaryEq(OBJ left, OBJ right) {
+  if (left->tag != right->tag) return newBoolean(FALSE);
   if (left->tag == T_UNINITIALIZED || right->tag == T_UNINITIALIZED)
     fatal("Cannot compare uninitialized values.");
 
@@ -186,11 +135,10 @@ OBJ _handleBinaryEq(OBJ left, OBJ right) {
       return NULL;
   }
 }
-OBJ _handleBinaryNeq(OBJ left, OBJ right) {
+inline OBJ _handleBinaryNeq(OBJ left, OBJ right) {
   if (left->tag == T_UNINITIALIZED || right->tag == T_UNINITIALIZED)
     fatal("Cannot compare uninitialized values.");
-  if (left->tag != right->tag)
-    return newBoolean(TRUE);
+  if (left->tag != right->tag) return newBoolean(TRUE);
 
   switch (left->tag) {
     case T_BOOLEAN:
@@ -214,103 +162,56 @@ OBJ _handleBinaryNeq(OBJ left, OBJ right) {
       return NULL;
   }
 }
-OBJ _handleBinaryLt(OBJ left, OBJ right) {
-  if (left->tag == T_UNINITIALIZED || right->tag == T_UNINITIALIZED)
-    fatal("Cannot work with uninitialized objects.");
-  if (left->tag == T_BOOLEAN || right->tag == T_BOOLEAN)
-    fatal("Binary LT cannot be used with Boolean objects.");
-  if (left->tag == T_STRING || right->tag == T_STRING)
-    fatal("Binary LT cannot be used with String objects.");
+inline OBJ _handleBinaryLt(OBJ left, OBJ right) {
+  INT_ONLY_CHECK(left, "Binary LT");
+  INT_ONLY_CHECK(right, "Binary LT");
 
-  if ((left->tag == T_INTEGER || left->tag == T_BIGINTEGER) &&
-      (right->tag == T_INTEGER || right->tag == T_BIGINTEGER)) {
+  int64_t leftVal = GET_INT_VALUE(left);
+  int64_t rightVal = GET_INT_VALUE(right);
 
-    int64_t leftVal = (left->tag == T_INTEGER) ? (int64_t)(((struct objInteger*)left)->val) : ((struct objBigInteger*)left)->val;
-    int64_t rightVal = (right->tag == T_INTEGER) ? (int64_t)(((struct objInteger*)right)->val) : ((struct objBigInteger*)right)->val;
-
-    if (leftVal < rightVal)
-      return newBoolean(TRUE);
-    return newBoolean(FALSE);
-  }
-  fatal("Unknown variable type.");
-  return NULL;
-}
-OBJ _handleBinaryLte(OBJ left, OBJ right) {
-  if (left->tag == T_UNINITIALIZED || right->tag == T_UNINITIALIZED)
-    fatal("Cannot work with uninitialized objects.");
-  if (left->tag == T_BOOLEAN || right->tag == T_BOOLEAN)
-    fatal("Binary LTE cannot be used with Boolean objects.");
-  if (left->tag == T_STRING || right->tag == T_STRING)
-    fatal("Binary LTE cannot be used with String objects.");
-
-  if ((left->tag == T_INTEGER || left->tag == T_BIGINTEGER) &&
-      (right->tag == T_INTEGER || right->tag == T_BIGINTEGER)) {
-
-    int64_t leftVal = (left->tag == T_INTEGER) ? (int64_t)(((struct objInteger*)left)->val) : ((struct objBigInteger*)left)->val;
-    int64_t rightVal = (right->tag == T_INTEGER) ? (int64_t)(((struct objInteger*)right)->val) : ((struct objBigInteger*)right)->val;
-
-    if (leftVal <= rightVal)
-      return newBoolean(TRUE);
-    return newBoolean(FALSE);
-  }
-  fatal("Unknown variable type.");
-  return NULL;
-}
-OBJ _handleBinaryGt(OBJ left, OBJ right) {
-  if (left->tag == T_UNINITIALIZED || right->tag == T_UNINITIALIZED)
-    fatal("Cannot work with uninitialized objects.");
-  if (left->tag == T_BOOLEAN || right->tag == T_BOOLEAN)
-    fatal("Binary GT cannot be used with Boolean objects.");
-  if (left->tag == T_STRING || right->tag == T_STRING)
-    fatal("Binary GT cannot be used with String objects.");
-
-  if ((left->tag == T_INTEGER || left->tag == T_BIGINTEGER) &&
-      (right->tag == T_INTEGER || right->tag == T_BIGINTEGER)) {
-
-    int64_t leftVal = (left->tag == T_INTEGER) ? (int64_t)(((struct objInteger*)left)->val) : ((struct objBigInteger*)left)->val;
-    int64_t rightVal = (right->tag == T_INTEGER) ? (int64_t)(((struct objInteger*)right)->val) : ((struct objBigInteger*)right)->val;
-
-    if (leftVal > rightVal)
-      return newBoolean(TRUE);
-    return newBoolean(FALSE);
-  }
-  fatal("Unknown variable type.");
-  return NULL;
-}
-OBJ _handleBinaryGte(OBJ left, OBJ right) {
-  if (left->tag == T_UNINITIALIZED || right->tag == T_UNINITIALIZED)
-    fatal("Cannot work with uninitialized objects.");
-  if (left->tag == T_BOOLEAN || right->tag == T_BOOLEAN)
-    fatal("Binary GTE cannot be used with Boolean objects.");
-  if (left->tag == T_STRING || right->tag == T_STRING)
-    fatal("Binary GTE cannot be used with String objects.");
-
-  if ((left->tag == T_INTEGER || left->tag == T_BIGINTEGER) &&
-      (right->tag == T_INTEGER || right->tag == T_BIGINTEGER)) {
-
-    int64_t leftVal = (left->tag == T_INTEGER) ? (int64_t)(((struct objInteger*)left)->val) : ((struct objBigInteger*)left)->val;
-    int64_t rightVal = (right->tag == T_INTEGER) ? (int64_t)(((struct objInteger*)right)->val) : ((struct objBigInteger*)right)->val;
-
-    if (leftVal >= rightVal)
-      return newBoolean(TRUE);
-    return newBoolean(FALSE);
-  }
-  fatal("Unknown variable type.");
-  return NULL;
-}
-OBJ _handleBinaryAnd(OBJ left, OBJ right) {
-  if (_evalToBoolean(left) && _evalToBoolean(right))
-    return newBoolean(TRUE);
+  if (leftVal < rightVal) return newBoolean(TRUE);
   return newBoolean(FALSE);
 }
-OBJ _handleBinaryOr(OBJ left, OBJ right) {
-  if (_evalToBoolean(left) || _evalToBoolean(right))
-    return newBoolean(TRUE);
+inline OBJ _handleBinaryLte(OBJ left, OBJ right) {
+  INT_ONLY_CHECK(left, "Binary LTE");
+  INT_ONLY_CHECK(right, "Binary LTE");
+
+  int64_t leftVal = GET_INT_VALUE(left);
+  int64_t rightVal = GET_INT_VALUE(right);
+
+  if (leftVal <= rightVal) return newBoolean(TRUE);
+  return newBoolean(FALSE);
+}
+inline OBJ _handleBinaryGt(OBJ left, OBJ right) {
+  INT_ONLY_CHECK(left, "Binary GT");
+  INT_ONLY_CHECK(right, "Binary GT");
+
+  int64_t leftVal = GET_INT_VALUE(left);
+  int64_t rightVal = GET_INT_VALUE(right);
+
+  if (leftVal > rightVal) return newBoolean(TRUE);
+  return newBoolean(FALSE);
+}
+inline OBJ _handleBinaryGte(OBJ left, OBJ right) {
+  INT_ONLY_CHECK(left, "Binary GTE");
+  INT_ONLY_CHECK(right, "Binary GTE");
+
+  int64_t leftVal = GET_INT_VALUE(left);
+  int64_t rightVal = GET_INT_VALUE(right);
+
+  if (leftVal >= rightVal) return newBoolean(TRUE);
+  return newBoolean(FALSE);
+}
+inline OBJ _handleBinaryAnd(OBJ left, OBJ right) {
+  if (_evalToBoolean(left) && _evalToBoolean(right)) return newBoolean(TRUE);
+  return newBoolean(FALSE);
+}
+inline OBJ _handleBinaryOr(OBJ left, OBJ right) {
+  if (_evalToBoolean(left) || _evalToBoolean(right)) return newBoolean(TRUE);
   return newBoolean(FALSE);
 }
 
 OBJ eval(astNode* node) {
-
   switch (node->tag) {
     case N_STATEMENT:
       pushLocalContext(FALSE);
@@ -325,10 +226,14 @@ OBJ eval(astNode* node) {
         eval(((astIfNode*)node)->thenBlk);
         return newBoolean(TRUE);
       }
-      if (((astIfNode*)node)->elseBlk)
-          eval(((astIfNode*)node)->elseBlk);
+      if (((astIfNode*)node)->elseBlk) eval(((astIfNode*)node)->elseBlk);
 
       return newBoolean(FALSE);
+    }
+    case N_ASSERT: {
+      OBJ res = eval(((astAssertNode*)node)->expr);
+      if (_evalToBoolean(res)) return newBoolean(TRUE);
+      fatal("Assertion failed.");
     }
     case N_WHILE: {
       OBJ cond = eval(((astWhileNode*)node)->cond);
@@ -343,7 +248,7 @@ OBJ eval(astNode* node) {
       if (amount->tag != T_INTEGER && amount->tag != T_BIGINTEGER)
         fatal("Do loop must have integer input.");
 
-      int64_t val = (amount->tag == T_INTEGER) ? (int64_t)(((struct objInteger*)amount)->val) : ((struct objBigInteger*)amount)->val;
+      int64_t val = GET_INT_VALUE(amount);
       for (int64_t i = 0; i < val; i++) {
         eval(((astWhileNode*)node)->block);
       }
@@ -357,8 +262,7 @@ OBJ eval(astNode* node) {
       OBJ right = getObjectFromBuffer(buffer);
 
       astNode* ident = ((astReadNode*)node)->var;
-      if (ident->tag != N_VAR)
-        fatal("Objects must be read to variable names.");
+      if (ident->tag != N_VAR) fatal("Objects must be read to variable names.");
 
       OBJEntry* var = memoryGetObjectEntry(((astExprVariableNode*)ident)->name);
       var->value = right;
@@ -372,13 +276,15 @@ OBJ eval(astNode* node) {
     }
     case N_CALL: {
       if (((astExprCallNode*)node)->var == NULL)
-        return handleFunctionCall(((astExprCallNode*)node)->name, ((astExprCallNode*)node)->aggr);
+        return handleFunctionCall(((astExprCallNode*)node)->name,
+                                  ((astExprCallNode*)node)->aggr);
 
       astNode* ident = ((astExprCallNode*)node)->var;
       if (ident->tag != N_VAR)
         fatal("Aggregator must have variable as a target.");
 
-      OBJ res = handleFunctionCall(((astExprCallNode*)node)->name, ((astExprCallNode*)node)->aggr);
+      OBJ res = handleFunctionCall(((astExprCallNode*)node)->name,
+                                   ((astExprCallNode*)node)->aggr);
 
       OBJEntry* var = memoryGetObjectEntry(((astExprVariableNode*)ident)->name);
       var->value = res;
@@ -406,13 +312,14 @@ OBJ eval(astNode* node) {
 
     case N_BINARY: {
       OBJ right = eval(((astExprBinaryNode*)node)->right);
-      if (((astExprBinaryNode*)node)->op == OP_ASSIGN) { // TODO
+      if (((astExprBinaryNode*)node)->op == OP_ASSIGN) {  // TODO
 
         astNode* ident = ((astExprBinaryNode*)node)->left;
         if (ident->tag != N_VAR)
           fatal(" Objects must be assigned to variable names.");
 
-        OBJEntry* var = memoryGetObjectEntry(((astExprVariableNode*)ident)->name);
+        OBJEntry* var =
+            memoryGetObjectEntry(((astExprVariableNode*)ident)->name);
         var->value = right;
         return cloneObject(right);
       }
@@ -439,7 +346,7 @@ OBJ eval(astNode* node) {
           return _handleBinaryLte(left, right);
         case OP_GT:
           return _handleBinaryGt(left, right);
-        case OP_GTE: 
+        case OP_GTE:
           return _handleBinaryGte(left, right);
         case OP_AND:
           return _handleBinaryAnd(left, right);
@@ -453,4 +360,3 @@ OBJ eval(astNode* node) {
   fatal("Unexpected ast node.");
   return NULL;
 }
-  

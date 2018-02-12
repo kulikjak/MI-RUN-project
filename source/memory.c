@@ -1,5 +1,5 @@
-#include <string.h>
 #include <limits.h>
+#include <string.h>
 
 #include "lang.h"
 
@@ -20,9 +20,8 @@ appAggregator aggregatorMemory[10];
 
 void heapMarkAndSweep() {
   int32_t i;
-  
-  if (heapAllocatedRecords <= MAS_LIMIT)
-    return;
+
+  if (heapAllocatedRecords <= MAS_LIMIT) return;
 
   // Mark phase: Go through each root and it's children and mark them
   objEnvironment* lenv = localEnvironment;
@@ -99,7 +98,7 @@ void _reallocEnvironment(objEnvironment* env) {
 void initializeApplicationMemory() {
   heapInit();
 
-  gAppCtx.global = (objEnvironment*) newEnvironment(NULL, FALSE);
+  gAppCtx.global = (objEnvironment*)newEnvironment(NULL, FALSE);
   gAppCtx.local = NULL;
   gAppCtx.main = NULL;
 
@@ -118,19 +117,17 @@ void initializeAggregatorMemory() {
 void freeAggregatorMemory() {
   int32_t i;
   for (i = 0; i < 10; i++) {
-    if (aggregatorMemory[i].count)
-      free(aggregatorMemory[i].array);
-  } 
+    if (aggregatorMemory[i].count) free(aggregatorMemory[i].array);
+  }
 }
 
 bool _compareIdentifiers(const char* key, OBJ object) {
-  if (object->tag == T_UNINITIALIZED) return FALSE;  
+  if (object->tag == T_UNINITIALIZED) return FALSE;
   if (object->tag != T_STRING)
     fatal("Runtime error - variables must have string identifiers.");
 
   objString* ident = (objString*)object;
-  if (!strcmp(key, ident->string))
-    return TRUE;
+  if (!strcmp(key, ident->string)) return TRUE;
   return FALSE;
 }
 
@@ -139,13 +136,12 @@ OBJEntry* memoryGetObjectEntry(const char* key) {
 
   // check in local memory
   objEnvironment* lenv = localEnvironment;
-  while(1) {
+  while (1) {
     for (i = 0; i < lenv->count; i++) {
       if (_compareIdentifiers(key, lenv->objects[i].key))
         return &(lenv->objects[i]);
     }
-    if (IS_RESTRICTED(lenv->parent) || lenv->parent == NULL)
-      break;
+    if (IS_RESTRICTED(lenv->parent) || lenv->parent == NULL) break;
 
     lenv = CLEAN_RESTRICTION(lenv->parent);
   }
@@ -167,33 +163,34 @@ OBJ memoryGetObject(const char* key) {
 }
 
 void pushLocalContext(bool restricted) {
-  objEnvironment* lenv = (objEnvironment*)newEnvironment(localEnvironment, restricted);
+  objEnvironment* lenv =
+      (objEnvironment*)newEnvironment(localEnvironment, restricted);
   localEnvironment = lenv;
 }
 
 void popLocalContext() {
-  if (localEnvironment == NULL)
-    fatal("Cannot exit nonexisting environment.");
+  if (localEnvironment == NULL) fatal("Cannot exit nonexisting environment.");
   localEnvironment = CLEAN_RESTRICTION(localEnvironment->parent);
 }
 
 void memoryAggregatorAdd(int8_t number, OBJ res) {
   int64_t pos;
 
-  if (number < 0 || number > 10)
-    fatal("Invalid aggregator number.");
+  if (number < 0 || number > 10) fatal("Invalid aggregator number.");
 
   if (aggregatorMemory[number].count >= aggregatorMemory[number].size) {
-    aggregatorMemory[number].size = (aggregatorMemory[number].size) ? aggregatorMemory[number].size * 2 : 2;
-    aggregatorMemory[number].array = (OBJ*)realloc(aggregatorMemory[number].array, aggregatorMemory[number].size * sizeof(OBJ));
+    aggregatorMemory[number].size =
+        (aggregatorMemory[number].size) ? aggregatorMemory[number].size * 2 : 2;
+    aggregatorMemory[number].array =
+        (OBJ*)realloc(aggregatorMemory[number].array,
+                      aggregatorMemory[number].size * sizeof(OBJ));
   }
   pos = aggregatorMemory[number].count++;
   aggregatorMemory[number].array[pos] = res;
 }
 
 appAggregator* memoryGetAggregator(int8_t number) {
-  if (number < 0 || number > 10)
-    fatal("Invalid aggregator number.");
+  if (number < 0 || number > 10) fatal("Invalid aggregator number.");
 
   return &(aggregatorMemory[number]);
 }
@@ -208,8 +205,9 @@ void _check(objEnvironment* env, const char* name) {
     if (env->objects[i].key->tag != T_STRING)
       fatal("Runtime error - variables must have string identifiers.");
 
-    objString* ident = (objString*) env->objects[i].key;
-    if (!strcmp(name, ident->string)) fatal("Redeclaration of variable / function.");
+    objString* ident = (objString*)env->objects[i].key;
+    if (!strcmp(name, ident->string))
+      fatal("Redeclaration of variable / function.");
   }
 }
 
@@ -219,19 +217,19 @@ OBJEntry* _newLocalVariable(const char* name, OBJ variable) {
 
   localEnvironment->objects[localEnvironment->count].key = newString(name);
   localEnvironment->objects[localEnvironment->count].value = variable;
-  localEnvironment->count ++;
+  localEnvironment->count++;
 
-  return &(localEnvironment->objects[localEnvironment->count-1]);
+  return &(localEnvironment->objects[localEnvironment->count - 1]);
 }
 
 void newGlobalVariable(const char* name) {
   objEnvironment* global = gAppCtx.global;
   _check(global, name);
 
-  if (global->count >= global->size)
-    _reallocEnvironment(global);
+  if (global->count >= global->size) _reallocEnvironment(global);
 
-  global->objects[global->count].key = newString(name);;
+  global->objects[global->count].key = newString(name);
+  ;
   global->objects[global->count].value = newUninitialized();
   global->count++;
 }
@@ -280,8 +278,7 @@ OBJ newBigInteger(int64_t val) {
 }
 
 OBJ newAutoInteger(int64_t val) {
-  if (val > INT_MAX || val < INT_MIN)
-    return newBigInteger(val);
+  if (val > INT_MAX || val < INT_MIN) return newBigInteger(val);
   return newInteger(val);
 }
 
@@ -310,8 +307,7 @@ OBJ newEnvironment(struct objEnvironment* parent, bool restricted) {
   newObj->count = 0;
   newObj->parent = parent;
   newObj->objects = (OBJEntry*)malloc(newObj->size * sizeof(OBJEntry));
-  if (restricted && parent)
-    RESTRICT_PARENT(newObj->parent);
+  if (restricted && parent) RESTRICT_PARENT(newObj->parent);
 
   heap[_heapGetFreeSlot()] = (OBJ)newObj;
   return (OBJ)newObj;

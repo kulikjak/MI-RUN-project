@@ -27,8 +27,8 @@ typedef enum objTag {
   T_ENVIRONMENT = 5
 } objTag;
 
-typedef struct object {
-  enum objTag tag;
+typedef struct object { 
+  enum objTag tag; 
 } object;
 
 typedef object* OBJ;
@@ -87,6 +87,22 @@ appContext gAppCtx;
 #define SKIP_ENDL                                 \
   {                                               \
     while (Symb.type == ENDL) Symb = readLexem(); \
+  }
+
+#define GET_INT_VALUE(obj)                                             \
+  ((obj->tag == T_INTEGER) ? (int64_t)(((struct objInteger*)obj)->val) \
+                           : ((struct objBigInteger*)obj)->val)
+
+#define INT_ONLY_CHECK(obj, operation)                              \
+  {                                                                 \
+    if (obj->tag == T_UNINITIALIZED)                                \
+      fatal("Cannot work with uninitialized objects.");             \
+    if (obj->tag == T_BOOLEAN)                                      \
+      fatalExt(operation, " cannot be used with Boolean objects."); \
+    if (obj->tag == T_STRING)                                       \
+      fatalExt(operation, " cannot be used with String objects.");  \
+    if (obj->tag != T_INTEGER && obj->tag == T_BIGINTEGER)          \
+      fatalExt(operation, " cannot be used with Unknown objects."); \
   }
 
 #endif /* __LANG__ */

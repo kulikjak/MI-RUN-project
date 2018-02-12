@@ -211,6 +211,19 @@ astStatementNode* _Line() {
 
       return newAstStatementNode((astNode*)statement, NULL, agg);
     }
+    case kwASSERT: {
+      Symb = readLexem();
+
+      // parse expression after assert keyword
+      astNode* expr = _Expression();
+      _Match(ENDL);
+
+      // create nodes for assertion statement
+      astAssertNode* node = newAstAssertNode(expr);
+      astStatementNode* statement =
+          newAstStatementNode((astNode*)node, NULL, agg);
+      return statement;
+    }
     case kwINCREMENT:
     case kwDECREMENT: {
       // set default amount based on keyword
@@ -461,9 +474,7 @@ astNode* _UnaryExpr() {
 
           return (astNode*)newAstExprCallNode(buffer, (int8_t)aggr, var);
         }
-        default: { 
-          return (astNode*)newAstExprVariableNode(buffer);
-        }
+        default: { return (astNode*)newAstExprVariableNode(buffer); }
       }
     }
     default:

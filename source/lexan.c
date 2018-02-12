@@ -11,16 +11,17 @@ typedef enum {
   NO_TYPE
 } InputCharType;
 
-const char* symbTable[46] = {
-    "IDENT",      "NUMB",       "STRING", "PLUS",        "MINUS",
-    "MUL",        "DIV",        "MOD",    "GT",          "GTE",
-    "LT",         "LTE",        "EQ",     "NEQ",         "LPAR",
-    "RPAR",       "COMMA",      "ENDL",   "ASSIGN",      "ARROW", "kwGLOBAL",
-    "kwVARIABLE", "kwFUNCTION", "kwARGS", "kwMAIN",      "kwBEGIN",
-    "kwEND",      "kwWHILE",    "kwIF",   "kwDO",        "kwTIMES",
-    "kwINTO",     "kwWRITE",    "kwREAD", "kwINCREMENT", "kwDECREMENT",
-    "kwBY",       "kwOR",       "kwAND",  "kwTRUE",      "kwFALSE",
-    "kwNOT",      "kwELSE",     "EOI",    "ERR",         "AGGREGATOR"};
+const char* symbTable[47] = {
+    "IDENT",       "NUMB",       "STRING",     "PLUS",     "MINUS",
+    "MUL",         "DIV",        "MOD",        "GT",       "GTE",
+    "LT",          "LTE",        "EQ",         "NEQ",      "LPAR",
+    "RPAR",        "COMMA",      "ENDL",       "ASSIGN",   "ARROW",
+    "kwGLOBAL",    "kwVARIABLE", "kwFUNCTION", "kwARGS",   "kwMAIN",
+    "kwBEGIN",     "kwEND",      "kwWHILE",    "kwIF",     "kwDO",
+    "kwTIMES",     "kwINTO",     "kwWRITE",    "kwREAD",   "kwINCREMENT",
+    "kwDECREMENT", "kwBY",       "kwOR",       "kwAND",    "kwTRUE",
+    "kwFALSE",     "kwNOT",      "kwELSE",     "kwASSERT", "EOI",
+    "ERR",         "AGGREGATOR"};
 
 static int character;        // vstupni znak
 static InputCharType input;  // vstupni symbol
@@ -72,6 +73,7 @@ const struct {
                     {"false", kwFALSE},
                     {"not", kwNOT},
                     {"else", kwELSE},
+                    {"assert", kwASSERT},
                     {NULL, (LexSymbolType)0}};
 
 LexSymbolType keyWord(char* id) {

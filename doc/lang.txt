@@ -7,6 +7,7 @@ multiply
 average
 clear
 
+
 <program> ::= <glob_decl>  <main>
 <glob_decl> ::= <global> <glob_decl> | eps
 
@@ -16,7 +17,7 @@ clear
 <block> ::= "begin" <endl_> <statement> <block_rest> "end"
 <block_rest> ::= <statement> <block_rest> | eps
 
-<statement> ::= <expression> | <while> | <if> | <do> | <read> | <write> | <increment> | <decrement> | eps
+<statement> ::= <expression> | <while> | <if> | <do> | <read> | <write> | <increment> | <decrement> | <assert> | eps
 
 <expression> ::= <aggregator> <expr_>
 
@@ -26,25 +27,20 @@ clear
 
 <do> ::= <aggregator> "do" <expr_> "times" <block> <endl_>
 
-<read> ::= <aggregator> "read" "into" <var__> <endl__> OK
+<read> ::= <aggregator> "read" "into" <var__> <endl__>
 
-<write> ::= <aggregator> "write" <expr_> <endl__> OK
+<write> ::= <aggregator> "write" <expr_> <endl__>
 
-<increment> ::= <aggregator> "increment" <var__> <amount_> <endl__> OK
+<assert> ::= <aggregator> "assert" <expr_> <endl__>
 
-<decrement> ::= <aggregator> "decrement" <var__> <amount_> <endl__> OK
+<increment> ::= <aggregator> "increment" <var__> <amount_> <endl__>
+
+<decrement> ::= <aggregator> "decrement" <var__> <amount_> <endl__>
 
 
 <aggregator> ::= <aggregator__> | eps
 
 <amount_> ::= "by" <expr_> | eps
-
-<func_args> ::= <var__> <func_args_rest>
-<func_args_rest> ::= <var__> <func_args_rest> | eps
-
-<args> ::= <expr_> <args_rest>
-<args_rest> ::= "," <expr_> <args_rest> | eps
-
 
 <number> - Number literal or variable of number type
 <string> - String in "" or variable of string type
@@ -55,7 +51,8 @@ clear
 <endl__> - newline
 <var__> - user defined variable
 <aggregator__> - aggregator number and symbol (eg. &1)
-<functionname__> - name of program defined function
-
 
 <expr_> ::= ....
+
+<call_> ::= "call" "(" <aggregator__> <call_target_> ")"
+<call_target_> ::= "->" <var__> | eps

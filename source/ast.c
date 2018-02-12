@@ -2,7 +2,7 @@
 
 #include "lang.h"
 
-void printAstTree(astNode* node) {  // TODO
+void printAstTree(astNode* node) {
   if (node == NULL) return;
   switch (node->tag) {
     case N_STATEMENT: {
@@ -56,6 +56,11 @@ void printAstTree(astNode* node) {  // TODO
       printAstTree(((astWriteNode*)node)->expr);
       break;
     }
+    case N_ASSERT: {
+      printf("ASSERT ");
+      printAstTree(((astAssertNode*)node)->expr);
+      break;
+    }
     case N_INT: {
       printf("%ld", ((astExprIntegerNode*)node)->value);
       break;
@@ -67,6 +72,15 @@ void printAstTree(astNode* node) {  // TODO
     case N_VAR: {
       printf("_%s", ((astExprVariableNode*)node)->name);
       break;
+    }
+    case N_CALL: {
+      printf("CALL %s (aggregator %d)", ((astExprCallNode*)node)->name,
+             ((astExprCallNode*)node)->aggr);
+      if (((astExprCallNode*)node)->var) {
+        printf(" -> ");
+        printAstTree(((astExprCallNode*)node)->var);
+      }
+      printf("\n");
     }
     case N_UNARY: {
       switch (((astExprUnaryNode*)node)->op) {
@@ -167,6 +181,10 @@ void burnAstTree(astNode* node) {
       burnAstTree(((astWriteNode*)node)->expr);
       break;
     }
+    case N_ASSERT: {
+      burnAstTree(((astAssertNode*)node)->expr);
+      break;
+    }
     case N_UNARY: {
       burnAstTree(((astExprUnaryNode*)node)->expr);
       break;
@@ -186,110 +204,122 @@ void burnAstTree(astNode* node) {
   free(node);
 }
 
-astStatementNode* newAstStatementNode(astNode* __s, astStatementNode* __n,
+astStatementNode* newAstStatementNode(astNode* statement,
+                                      astStatementNode* next,
                                       int8_t aggregator) {
-  astStatementNode* _n = (astStatementNode*)malloc(sizeof(astStatementNode));
-  _n->tag = N_STATEMENT;
-  _n->aggregator = aggregator;
-  _n->statement = __s;
-  _n->next = (astNode*)__n;
-  return _n;
+  astStatementNode* node = (astStatementNode*)malloc(sizeof(astStatementNode));
+  node->tag = N_STATEMENT;
+  node->aggregator = aggregator;
+  node->statement = statement;
+  node->next = (astNode*)next;
+  return node;
 }
 
-astIfNode* newAstIfNode(astNode* condition, astNode* thenBlk, astNode* elseBlk) {
-  astIfNode* _n = (astIfNode*)malloc(sizeof(astIfNode));
-  _n->tag = N_IF;
-  _n->cond = condition;
-  _n->thenBlk = thenBlk;
-  _n->elseBlk = elseBlk;
-  return _n;
+astIfNode* newAstIfNode(astNode* condition, astNode* thenBlk,
+                        astNode* elseBlk) {
+  astIfNode* node = (astIfNode*)malloc(sizeof(astIfNode));
+  node->tag = N_IF;
+  node->cond = condition;
+  node->thenBlk = thenBlk;
+  node->elseBlk = elseBlk;
+  return node;
 }
 
 astWhileNode* newAstWhileNode(astNode* condition, astNode* block) {
-  astWhileNode* _n = (astWhileNode*)malloc(sizeof(astWhileNode));
-  _n->tag = N_WHILE;
-  _n->cond = condition;
-  _n->block = block;
-  return _n;  
+  astWhileNode* node = (astWhileNode*)malloc(sizeof(astWhileNode));
+  node->tag = N_WHILE;
+  node->cond = condition;
+  node->block = block;
+  return node;
 }
 
 astDoNode* newAstDoNode(astNode* amount, astNode* block) {
-  astDoNode* _n = (astDoNode*)malloc(sizeof(astDoNode));
-  _n->tag = N_DO;
-  _n->amount = amount;
-  _n->block = block;
-  return _n;   
+  astDoNode* node = (astDoNode*)malloc(sizeof(astDoNode));
+  node->tag = N_DO;
+  node->amount = amount;
+  node->block = block;
+  return node;
 }
 
-astReadNode* newAstReadNode(astExprVariableNode* __v) {
-  astReadNode* _n = (astReadNode*)malloc(sizeof(astReadNode));
-  _n->tag = N_READ;
-  _n->var = (astNode*)__v;
-  return _n;
+astReadNode* newAstReadNode(astExprVariableNode* var) {
+  astReadNode* node = (astReadNode*)malloc(sizeof(astReadNode));
+  node->tag = N_READ;
+  node->var = (astNode*)var;
+  return node;
 }
 
-astWriteNode* newAstWriteNode(astNode* __e) {
-  astWriteNode* _n = (astWriteNode*)malloc(sizeof(astWriteNode));
-  _n->tag = N_WRITE;
-  _n->expr = __e;
-  return _n;
+astWriteNode* newAstWriteNode(astNode* expr) {
+  astWriteNode* node = (astWriteNode*)malloc(sizeof(astWriteNode));
+  node->tag = N_WRITE;
+  node->expr = expr;
+  return node;
 }
 
-astExprIntegerNode* newAstExprIntegerNode(int64_t __v) {
-  astExprIntegerNode* _n =
+astAssertNode* newAstAssertNode(astNode* expr) {
+  astAssertNode* node = (astAssertNode*)malloc(sizeof(astAssertNode));
+  node->tag = N_ASSERT;
+  node->expr = expr;
+  return node;
+}
+
+astExprIntegerNode* newAstExprIntegerNode(int64_t value) {
+  astExprIntegerNode* node =
       (astExprIntegerNode*)malloc(sizeof(astExprIntegerNode));
-  _n->tag = N_INT;
-  _n->value = __v;
-  return _n;
+  node->tag = N_INT;
+  node->value = value;
+  return node;
 }
 
-astExprBooleanNode* newAstExprBooleanNode(bool __v) {
-  astExprBooleanNode* _n =
+astExprBooleanNode* newAstExprBooleanNode(bool value) {
+  astExprBooleanNode* node =
       (astExprBooleanNode*)malloc(sizeof(astExprBooleanNode));
-  _n->tag = N_BOOL;
-  _n->value = __v;
-  return _n;
+  node->tag = N_BOOL;
+  node->value = value;
+  return node;
 }
 
-astExprStringNode* newAstExprStringNode(char* __b) {
-  int32_t len = strlen(__b);
-  astExprStringNode* _n =
+astExprStringNode* newAstExprStringNode(char* buffer) {
+  int32_t len = strlen(buffer);
+  astExprStringNode* node =
       (astExprStringNode*)malloc(sizeof(astExprStringNode) + len);
-  _n->tag = N_STRING;
-  strncpy(_n->string, __b, len + 1);
-  return _n;
+  node->tag = N_STRING;
+  strncpy(node->string, buffer, len + 1);
+  return node;
 }
 
-astExprVariableNode* newAstExprVariableNode(char* __b) {
-  int32_t len = strlen(__b);
-  astExprVariableNode* _n =
+astExprVariableNode* newAstExprVariableNode(char* buffer) {
+  int32_t len = strlen(buffer);
+  astExprVariableNode* node =
       (astExprVariableNode*)malloc(sizeof(astExprVariableNode) + len);
-  _n->tag = N_VAR;
-  strncpy(_n->name, __b, len + 1);
-  return _n;
+  node->tag = N_VAR;
+  strncpy(node->name, buffer, len + 1);
+  return node;
 }
 
-astExprUnaryNode* newAstExprUnaryNode(exprOperator __op, astNode* __e) {
-  astExprUnaryNode* _n = (astExprUnaryNode*)malloc(sizeof(astExprUnaryNode));
-  _n->tag = N_UNARY;
-  _n->op = __op;
-  _n->expr = __e;
-  return _n;
+astExprUnaryNode* newAstExprUnaryNode(exprOperator op, astNode* expr) {
+  astExprUnaryNode* node = (astExprUnaryNode*)malloc(sizeof(astExprUnaryNode));
+  node->tag = N_UNARY;
+  node->op = op;
+  node->expr = expr;
+  return node;
 }
 
-astExprBinaryNode* newAstExprBinaryNode(exprOperator __op, astNode* __l,
-                                        astNode* __r) {
-  astExprBinaryNode* _n = (astExprBinaryNode*)malloc(sizeof(astExprBinaryNode));
-  _n->tag = N_BINARY;
-  _n->op = __op;
-  _n->left = __l;
-  _n->right = __r;
-  return _n;
+astExprBinaryNode* newAstExprBinaryNode(exprOperator op, astNode* left,
+                                        astNode* right) {
+  astExprBinaryNode* node =
+      (astExprBinaryNode*)malloc(sizeof(astExprBinaryNode));
+  node->tag = N_BINARY;
+  node->op = op;
+  node->left = left;
+  node->right = right;
+  return node;
 }
 
-astExprCallNode* newAstExprCallNode(const char* name, int8_t aggr, astNode* var) {
+astExprCallNode* newAstExprCallNode(const char* name, int8_t aggr,
+                                    astNode* var) {
   int32_t len = strlen(name);
-  astExprCallNode* node = (astExprCallNode*)malloc(sizeof(astExprCallNode) + len);
+  astExprCallNode* node =
+      (astExprCallNode*)malloc(sizeof(astExprCallNode) + len);
   node->tag = N_CALL;
   node->aggr = aggr;
   node->var = var;
