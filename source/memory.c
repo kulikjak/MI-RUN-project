@@ -19,7 +19,7 @@ objEnvironment* localEnvironment;
 appAggregator aggregatorMemory[10];
 
 void heapMarkAndSweep() {
-  int32_t i;
+  int32_t i, j;
 
   if (heapAllocatedRecords <= MAS_LIMIT) return;
 
@@ -43,6 +43,13 @@ void heapMarkAndSweep() {
     for (i = 0; i < genv->count; i++) {
       MARK(genv->objects[i].key);
       MARK(genv->objects[i].value);
+    }
+  }
+
+  // mark variables in aggregators
+  for (i = 0; i < 10; i++) {
+    for (j = 0; j < aggregatorMemory[i].count; j++) {
+      MARK(aggregatorMemory[i].array[j]);
     }
   }
 

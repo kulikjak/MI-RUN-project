@@ -478,35 +478,10 @@ astNode* _UnaryExpr() {
       }
     }
     default:
-      printf("Error in expression expansion");
-      printf("%s\n", symbTable[Symb.type]);
-      exit(EXIT_FAILURE);
+      fatalExt("Error in expression expansion", symbTable[Symb.type]);
+      return NULL;
   }
 }
-
-/*void FunctionArguments( TreeFunctionENode* f ) {
-
-  Debug( "FunctionArguments" );
-  if(!_Check(RPAR)){
-    Tree_ExpressionNode *e = _Expression();
-
-    f->addArg( e );
-      FunctionArgumentsRest( f );
-  }
-}
-
-void FunctionArgumentsRest( TreeFunctionENode *f ) {
-
-  Debug( "FunctionArgumentsRest" );
-  if(_Check(COMMA)){
-
-    Symb = readLexem();
-    Tree_ExpressionNode *e = _Expression();
-
-    f->addArg( e );
-      FunctionArgumentsRest( f );
-  }
-}*/
 
 void initParser(const char* fileName) {
   initLexan(fileName);
