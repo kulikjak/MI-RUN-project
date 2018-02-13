@@ -1,0 +1,29 @@
+main begin
+  write "Testing aggregators:"
+
+&1  i := 3
+&1  i := 1
+&1  100
+&1  -20
+
+  sum(&1 -> test)
+  assert test = 84
+
+&2  6
+&2  108
+&2  12 + 4 - 6
+
+  average(&2 -> test)
+  assert test = 41
+
+  clear(&2)
+
+&2  12
+&2  3
+&2  -1
+
+  multiply(&2 -> test)
+  assert test = -36
+
+  write "OK"
+end

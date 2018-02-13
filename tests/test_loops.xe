@@ -1,0 +1,25 @@
+main begin
+  write "Testing loops:"
+
+  i := 0
+  counter := 0
+  while i < 20 begin
+    increment counter
+    i := i + 1
+  end
+  assert counter = 20
+
+  counter := 0
+  do 30 times begin
+    increment counter
+  end
+  assert counter = 30
+
+  counter := 0
+  do -6 times begin
+    increment counter
+  end
+  assert counter = 0
+
+  write "OK"
+end

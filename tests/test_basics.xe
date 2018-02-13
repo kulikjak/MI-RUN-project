@@ -1,0 +1,16 @@
+global variable a
+global variable b
+
+main begin
+  write "Testing basics:"
+
+  c := 6
+  a := 5
+  b := 4
+
+  assert c = 6
+  assert a = 5
+  assert b = 4
+
+  write "OK"
+end

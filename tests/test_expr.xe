@@ -1,0 +1,51 @@
+main begin
+  write "Testing expressions:"
+
+  assert 6 = 6
+  assert 10000 = 10000
+
+  assert "Kulda" = "Kulda"
+  assert ("Kulda" = "Kuba") = false
+
+  assert "Kulda" != "Kuba"
+  assert "Kulda" != 6
+
+  assert 1 < 2
+  assert 1 <= 2
+  assert 2 <= 2
+  assert 3 > 2
+  assert 3 >= 2
+  assert 2 >= 2
+
+  assert (2 < 1) = false
+  assert (2 > 3) = false
+
+  assert true and true
+  assert (true and false) = false
+  assert (false and true) = false
+  assert (false and false) = false
+  assert true or true
+  assert true or false
+  assert false or true
+  assert (false or false) = false
+
+  assert 6 and 3
+  assert 0 or 2
+
+  assert (6 + 3) = 9
+  assert (6 - 3) = 3
+  assert (9 - 18) = -9
+
+  assert (10 * 0) = 0
+  assert (10 * 1)
+  assert (20 * 365) = 7300
+
+  assert (6 * 3) = 18
+  assert (6 / 3) = 2
+  assert (9 / 18) = 0
+
+  assert (10 % 3) = 1
+  assert (10 % 1) = 0
+
+  write "OK"
+end
