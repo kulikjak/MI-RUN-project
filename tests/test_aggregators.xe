@@ -6,6 +6,8 @@ main begin
 &1  100
 &1  -20
 
+	i := 10
+
   sum(&1 -> test)
   assert test = 84
 
