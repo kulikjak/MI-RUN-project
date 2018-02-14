@@ -1,4 +1,8 @@
 main begin
   write - 2
   assert "Kulda"
+
+  begin
+    b := 2
+  end
 end

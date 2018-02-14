@@ -140,6 +140,9 @@ astStatementNode* _Line() {
   int8_t agg = _Aggregator();
 
   switch (Symb.type) {
+    case kwBEGIN: {
+      return newAstStatementNode((astNode*)_Block(), NULL, agg);
+    }
     case kwREAD: {
       Symb = readLexem();
 
