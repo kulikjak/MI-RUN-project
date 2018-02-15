@@ -1,6 +1,6 @@
-#include "lang.h"
-
 #include <string.h>
+
+#include "lang.h"
 
 typedef enum {
   LETTER,
@@ -147,7 +147,7 @@ q0:
       data.type = COMMA;
       readInput();
       return data;
-    default:;
+    default: {}
   }
 
   switch (input) {

@@ -294,8 +294,7 @@ OBJ eval(astNode* node) {
 
     case N_BINARY: {
       OBJ right = eval(((astExprBinaryNode*)node)->right);
-      if (((astExprBinaryNode*)node)->op == OP_ASSIGN) {  // TODO
-
+      if (((astExprBinaryNode*)node)->op == OP_ASSIGN) {
         astNode* ident = ((astExprBinaryNode*)node)->left;
         if (ident->tag != N_VAR)
           fatal(" Objects must be assigned to variable names.");

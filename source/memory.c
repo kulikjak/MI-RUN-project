@@ -236,7 +236,6 @@ void newGlobalVariable(const char* name) {
   if (global->count >= global->size) _reallocEnvironment(global);
 
   global->objects[global->count].key = newString(name);
-  ;
   global->objects[global->count].value = newUninitialized();
   global->count++;
 }

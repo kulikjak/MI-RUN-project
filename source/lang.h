@@ -27,8 +27,8 @@ typedef enum objTag {
   T_ENVIRONMENT = 5
 } objTag;
 
-typedef struct object { 
-  enum objTag tag; 
+typedef struct object {
+  enum objTag tag;
 } object;
 
 typedef object* OBJ;
