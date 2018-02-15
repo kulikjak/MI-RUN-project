@@ -6,8 +6,8 @@ int main(int argc, char* argv[]) {
 
   initializeApplicationMemory();
   initializeAggregatorMemory();
-
   initParser(argv[1]);
+
   ParseProgram();
   runProgram();
 

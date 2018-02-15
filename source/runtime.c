@@ -50,24 +50,6 @@ inline OBJ _handleUnaryMinus(OBJ obj) {
   int64_t val = GET_INT_VALUE(obj);
   return newAutoInteger(val * -1);
 }
-/*OBJ _handleBinaryPlus(OBJ left, OBJ right) {
-  if (left->tag == T_UNINITIALIZED || right->tag == T_UNINITIALIZED)
-    fatal("Cannot work with uninitialized objects.");
-  if (left->tag == T_BOOLEAN || right->tag == T_BOOLEAN)
-    fatal("Binary plus cannot be used with Boolean objects.");
-  if (left->tag == T_STRING || right->tag == T_STRING)
-    fatal("Binary plus cannot be used with String objects.");
-
-  if ((left->tag == T_INTEGER || left->tag == T_BIGINTEGER) &&
-      (right->tag == T_INTEGER || right->tag == T_BIGINTEGER)) {
-
-    int64_t leftVal = GET_INT_VALUE(left);
-    int64_t rightVal = GET_INT_VALUE(right);
-    return newAutoInteger(leftVal + rightVal);
-  }
-  fatal("Unknown variable type.");
-  return NULL;
-}*/
 inline OBJ _handleBinaryPlus(OBJ left, OBJ right) {
   INT_ONLY_CHECK(left, "Binary plus");
   INT_ONLY_CHECK(right, "Binary plus");
