@@ -1,12 +1,4 @@
-
-
-#Aggregator functions:
-
-sum
-multiply
-average
-clear
-
+###XE Language grammar
 
 <program> ::= <glob_decl>  <main>
 <glob_decl> ::= <global> <glob_decl> | eps
@@ -14,18 +6,18 @@ clear
 <global> ::= "global" "variable" <var__> <endl__>
 <main> ::= "main" <block> <endl__>
 
-<block> ::= "begin" <endl_> <statement> <block_rest> "end"
+<block> ::= "begin" <endl__> <statement> <block_rest> "end"
 <block_rest> ::= <statement> <block_rest> | eps
 
-<statement> ::= <expression> | <while> | <if> | <do> | <read> | <write> | <increment> | <decrement> | <assert> | eps
+<statement> ::= <block> | <expression> | <while> | <if> | <do> | <read> | <write> | <increment> | <decrement> | <assert> | eps
 
-<expression> ::= <aggregator> <expr_>
+<expression> ::= <aggregator> <expr_> <endl__>
 
-<while> ::= <aggregator> "while" <expr_> <block> <endl_>
+<while> ::= <aggregator> "while" <expr_> <block> <endl__>
 
-<if> ::= <aggregator> "if" <expr_> <block> <endl_>
+<if> ::= <aggregator> "if" <expr_> <block> <endl__>
 
-<do> ::= <aggregator> "do" <expr_> "times" <block> <endl_>
+<do> ::= <aggregator> "do" <expr_> "times" <block> <endl__>
 
 <read> ::= <aggregator> "read" "into" <var__> <endl__>
 
@@ -41,12 +33,6 @@ clear
 <aggregator> ::= <aggregator__> | eps
 
 <amount_> ::= "by" <expr_> | eps
-
-<number> - Number literal or variable of number type
-<string> - String in "" or variable of string type
-<bool> - True/False or variable of bool type
-
-<type> - Type identifier (number/string/bool)
 
 <endl__> - newline
 <var__> - user defined variable
